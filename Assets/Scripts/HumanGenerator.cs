@@ -11,21 +11,11 @@ public class HumanGenerator : MonoBehaviour
     int HIndex = 0;
     public GameObject ChosenWaldo;
     public string ClickedHuman;
+    public TextAsset namesList;
+    public TextAsset skinTonesList;
 
     private void Awake()
     {
-        //HumanList = new Dictionary<int, GameObject>();
-        //Debug.Log("HumanList size: " + HumanList.Count);
-        //for (int i = 0; i < HumanCount; i++)
-        //{
-        //    GameObject human = Resources.Load<GameObject>("Prefabs/Human");
-        //    SpawnHuman(human);
-        //}
-        //ChosenWaldo = HumanList[Random.Range(0, HumanList.Count)];
-        //Debug.Log("Chosen Waldo: " + ChosenWaldo);
-        //GameObject.Find("Canvas/Bounty Panel/Name").GetComponent<TextMeshProUGUI>().text += ChosenWaldo.name;
-        //GameObject.Find("Canvas/Bounty Panel/Sprite").GetComponent<Image>().sprite = ChosenWaldo.GetComponent<SpriteRenderer>().sprite;
-        //GameObject.Find("Canvas/Bounty Panel/Sprite").GetComponent<Image>().color = ChosenWaldo.GetComponent<SpriteRenderer>().color;
     }
 
     // Start is called before the first frame update
@@ -52,8 +42,11 @@ public class HumanGenerator : MonoBehaviour
 
     string GenerateName()
     {
-        string[] wordlist = System.IO.File.ReadAllLines("Assets/Resources/names.txt");
-
+        List<string> wordlist = new List<string>();
+        foreach (string line in namesList.text.Split('\n'))
+        {
+            wordlist.Add(line);
+        }
         var firstNameSyllables = Random.Range(1, 4);
         var lastNameSyllables = Random.Range(1, 4);
         string firstName = "";
@@ -61,11 +54,11 @@ public class HumanGenerator : MonoBehaviour
 
         for (int i = 0; i < firstNameSyllables; i++)
         {
-            firstName += wordlist[Random.Range(0, wordlist.Length)];
+            firstName += wordlist[Random.Range(0, wordlist.Count)];
         }
         for (int i = 0; i < lastNameSyllables; i++)
         {
-            lastName += wordlist[Random.Range(0, wordlist.Length)];
+            lastName += wordlist[Random.Range(0, wordlist.Count)];
         }
         char[] fn = firstName.ToCharArray();
         fn[0] = char.ToUpper(fn[0]);
@@ -119,9 +112,17 @@ public class HumanGenerator : MonoBehaviour
 
     public Color PickSkinTone()
     {
-        string[] skinTones = System.IO.File.ReadAllLines("Assets/Resources/skin_tones.txt");
-        string chosenSkinTone = skinTones[Random.Range(0, skinTones.Length)];
+        //string[] skinTones = System.IO.File.ReadAllLines("Assets/Resources/skin_tones.txt");
+        List<string> skinTones = new List<string>();
+        foreach (string line in skinTonesList.text.Split('\n'))
+        {
+            skinTones.Add(line);
+            //Debug.Log(line);
+        }
+        string chosenSkinTone = skinTones[Random.Range(0, skinTones.Count)];
+        Debug.Log("chosenSkinTone: " + chosenSkinTone);
         var skinToneValue = chosenSkinTone.Split(',');
+        //return new Color(r: float.Parse("0.5"), g: float.Parse("0.5"), b: float.Parse("0.5"));
         return new Color(r: float.Parse(skinToneValue[0]) / 255, g: float.Parse(skinToneValue[1]) / 255, b: float.Parse(skinToneValue[2]) / 255);
     }
 

@@ -283,25 +283,42 @@ public class IslandGenerator : MonoBehaviour
             }
         }
         var chosenTriangle = triangleList[randomTriangle];
+        Vector2[] chosenTriangleList = new Vector2[chosenTriangle.Count];
+        for (int i = 0; i < chosenTriangle.Count; i++)
+        {
+            chosenTriangleList[i] = chosenTriangle[i];
+        }
         Vector3 houseSpawnPoint = GetRandomPoint(chosenTriangle[0], chosenTriangle[1], chosenTriangle[2]);
         while (HouseSpawned == false)
         {
             if (InTriangle(houseSpawnPoint, chosenTriangle[0], chosenTriangle[1], chosenTriangle[2]))
             {
-                var newHouse = Instantiate(house, houseSpawnPoint, transform.rotation);
-                newHouse.GetComponent<SpriteRenderer>().sortingOrder = 3;
-                if (flipHouseX == 1)
+                if (TriangleArea(chosenTriangleList) >= TriangleArea(house.GetComponent<SpriteRenderer>().sprite.vertices))
                 {
-                    newHouse.GetComponent<SpriteRenderer>().flipX = true;
+                    var newHouse = Instantiate(house, houseSpawnPoint, transform.rotation);
+                    newHouse.GetComponent<SpriteRenderer>().sortingOrder = 3;
+                    if (flipHouseX == 1)
+                    {
+                        newHouse.GetComponent<SpriteRenderer>().flipX = true;
+                    }
+                    //HumanList.Add(HIndex, newHuman);
+                    newHouse.transform.parent = GameObject.Find("Island/Houses").transform;
+                    //HIndex += 1;
+                    //Debug.Log("Triangle Area(): " + TriangleArea(chosenTriangleList));
+                    //Debug.Log("Triangle Area of House(): " + TriangleArea(house.GetComponent<SpriteRenderer>().sprite.vertices));
+                    HouseSpawned = true;
                 }
-                //HumanList.Add(HIndex, newHuman);
-                newHouse.transform.parent = GameObject.Find("Island/Houses").transform;
-                //HIndex += 1;
-                HouseSpawned = true;
             }
             else
             {
+                randomTriangle = Random.Range(0, (triangleVerts.Length * 2) / 3);
+                chosenTriangle = triangleList[randomTriangle];
+                for (int i = 0; i < chosenTriangle.Count; i++)
+                {
+                    chosenTriangleList[i] = chosenTriangle[i];
+                }
                 houseSpawnPoint = GetRandomPoint(chosenTriangle[0], chosenTriangle[1], chosenTriangle[2]);
+                //Debug.Log("Try again.");
             }
         }
     }
@@ -338,5 +355,16 @@ public class IslandGenerator : MonoBehaviour
         var t = (p0.x * p1.y - p0.y * p1.x + (p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y) * sign;
 
         return s > 0 && t > 0 && (s + t) < 2 * a * sign;
+    }
+
+    public float TriangleArea(Vector2[] verts)
+    {
+        Vector3 result = Vector3.zero;
+        for (int p = verts.Length - 1, q = 0; q < verts.Length; p = q++)
+        {
+            result += Vector3.Cross(verts[q], verts[p]);
+        }
+        result *= 0.5f;
+        return result.magnitude;
     }
 }

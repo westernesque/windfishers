@@ -21,7 +21,7 @@ public class Nighttime : MonoBehaviour
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         timer = GameObject.Find("Canvas/Timer/Background").GetComponent<Image>();
-        CountdownRate = 0.5f / GameObject.Find("Game Manager").GetComponent<GameManager>().Countdown;
+        CountdownRate = 0.5f / GameObject.Find("Game Manager").GetComponent<StartGame>().Countdown;
         Debug.Log("Countdown rate: " + CountdownRate);
         spriteRendererColor = spriteRenderer.color;
 

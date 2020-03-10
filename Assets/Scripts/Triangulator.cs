@@ -67,7 +67,7 @@ public class Triangulator
         return indices.ToArray();
     }
 
-    public float Area()
+    private float Area()
     {
         int n = m_points.Count;
         float A = 0.0f;
