@@ -25,7 +25,7 @@ public class HumanGenerator : MonoBehaviour
         Debug.Log("HumanList size: " + HumanList.Count);
         for (int i = 0; i < HumanCount; i++)
         {
-            GameObject human = Resources.Load<GameObject>("Prefabs/Human");
+            GameObject human = Resources.Load<GameObject>("Prefabs/Body 01/Human");
             SpawnHuman(human);
         }
         ChosenWaldo = HumanList[Random.Range(0, HumanList.Count)];
@@ -120,7 +120,6 @@ public class HumanGenerator : MonoBehaviour
             //Debug.Log(line);
         }
         string chosenSkinTone = skinTones[Random.Range(0, skinTones.Count)];
-        Debug.Log("chosenSkinTone: " + chosenSkinTone);
         var skinToneValue = chosenSkinTone.Split(',');
         //return new Color(r: float.Parse("0.5"), g: float.Parse("0.5"), b: float.Parse("0.5"));
         return new Color(r: float.Parse(skinToneValue[0]) / 255, g: float.Parse(skinToneValue[1]) / 255, b: float.Parse(skinToneValue[2]) / 255);

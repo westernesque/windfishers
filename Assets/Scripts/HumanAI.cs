@@ -5,28 +5,32 @@ using UnityEngine;
 public class HumanAI : MonoBehaviour
 {
     Vector2 speed;
-    bool moving;
+    public bool moving;
+    public bool hovered;
     float waitTime;
     float moveTime;
     Vector2 randomDir;
     int posOrNeg;
     GameObject outline;
     GameObject outlineTwo;
+    public Animator humanAnimation;
 
     void Start()
     {
-        float randSpeed = Random.Range(0.0f, 3.0f);
+        float randSpeed = Random.Range(0.1f, 1.1f);
         speed = new Vector2(randSpeed, randSpeed);
         waitTime = Random.Range(1.0f, 5.0f);
         moveTime = 0.0f;
         randomDir = new Vector2(Random.Range(-1, 1), Random.Range(-1, 1));
         posOrNeg = Random.Range(0, 2);
+        //humanAnimation = this.GetComponent<Animator>();
     }
 
     private Vector2 movement;
 
     private void OnMouseEnter()
     {
+        hovered = true;
         outline = new GameObject();
         outlineTwo = new GameObject();
         outlineTwo.AddComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>("Glow");
@@ -48,6 +52,7 @@ public class HumanAI : MonoBehaviour
     {
         if (outline != null)
         {
+            hovered = false;
             Destroy(outline);
             Destroy(outlineTwo);
         }
@@ -60,32 +65,67 @@ public class HumanAI : MonoBehaviour
             outlineTwo.transform.position = this.transform.position;
             outline.transform.position = this.transform.position;
         }
-        while (moving == true)
+        if (hovered == false)
         {
-            if (moveTime > 0.0f)
+            if (moving == true)
             {
-                movement = new Vector2(speed.x * randomDir.x, speed.y * randomDir.y);
-                moveTime -= Time.deltaTime;
+                if (moveTime > 0.0f)
+                {
+                    movement = new Vector2(speed.x * randomDir.x, speed.y * randomDir.y);
+                    moveTime -= Time.deltaTime;
+                }
+                else
+                {
+                    moveTime = Random.Range(1.0f, 5.0f);
+                    moving = false;
+                    humanAnimation.SetBool("IsMoving", false);
+                }
+            }
+            if (waitTime > 0.0f)
+            {
+                waitTime -= Time.deltaTime;
             }
             else
             {
-                moveTime = Random.Range(1.0f, 5.0f);
-                moving = false;
+                waitTime = Random.Range(1.0f, 5.0f);
+                randomDir = new Vector2(Random.Range(-1, 1), Random.Range(-1, 1));
+                posOrNeg = Random.Range(0, 2);
+                moving = true;
+                humanAnimation.SetBool("IsMoving", true);
             }
-        }
-        if (waitTime > 0.0f)
-        {
-            waitTime -= Time.deltaTime;
         }
         else
         {
-            waitTime = Random.Range(1.0f, 5.0f);
-            randomDir = new Vector2(Random.Range(-1, 1), Random.Range(-1, 1));
-            posOrNeg = Random.Range(0, 2);
-            moving = true;
+            movement = new Vector2(0.0f, 0.0f);
         }
-
+        //if (moving == true)
+        //{
+        //    if (moveTime > 0.0f)
+        //    {
+        //        movement = new Vector2(speed.x * randomDir.x, speed.y * randomDir.y);
+        //        moveTime -= Time.deltaTime;
+        //    }
+        //    else
+        //    {
+        //        moveTime = Random.Range(1.0f, 5.0f);
+        //        moving = false;
+        //        humanAnimation.SetBool("IsMoving", false);
+        //    }
+        //}
+        //if (waitTime > 0.0f)
+        //{
+        //    waitTime -= Time.deltaTime;
+        //}
+        //else
+        //{
+        //    waitTime = Random.Range(1.0f, 5.0f);
+        //    randomDir = new Vector2(Random.Range(-1, 1), Random.Range(-1, 1));
+        //    posOrNeg = Random.Range(0, 2);
+        //    moving = true;
+        //    humanAnimation.SetBool("IsMoving", true);
+        //}
     }
+
 
     void FixedUpdate()
     {

@@ -21,6 +21,7 @@ public class IslandGenerator : MonoBehaviour
     public Triangulator tr;
     public EdgeCollider2D edgeCollider2D;
     public Mesh islandMesh;
+    public Mesh sandMeshTest;
     public Vector2 IslandBounds;
     public GameObject house;
 
@@ -49,12 +50,13 @@ public class IslandGenerator : MonoBehaviour
 
     private void Update()
     {
-        // Code to cycle through waves here.
+        // Code to cycle through waves here?
     }
 
     void CreateIslandMesh()
     {
         islandMesh = new Mesh();
+        sandMeshTest = new Mesh();
         if (ConnectedIslands)
         {
             NumberOfConnectedIslands = Random.Range(0, 3);
@@ -136,7 +138,7 @@ public class IslandGenerator : MonoBehaviour
         }
         lineRenderer.positionCount = edgeVertices2D.Length;
         lineRenderer.widthCurve = beachCurve;
-        lineRenderer.widthMultiplier = 2.0f;
+        lineRenderer.widthMultiplier = 1.0f;
         lineRenderer.SetPositions(edgeVertices2D);
     }
 
@@ -183,11 +185,13 @@ public class IslandGenerator : MonoBehaviour
         }
 
         // STEP TWO: created the curves, store the points into a new vertices list.
-        int curveNumberOfPoints = 5;
+        int curveNumberOfPoints = 10;
         List<Vector2> curveVerticesList = new List<Vector2>();
-        for (int i = 0; i < edgeVertices.Count - 2; i++)
+        // 9 - 2 = 7
+        for (int i = 0; i < edgeVertices.Count - 1; i++)
         {
-            if (i < edgeVertices.Count)
+            Debug.Log("edgeverts count: " + edgeVertices.Count);
+            if (i < edgeVertices.Count - 2)
             {
                 for (int x = 0;  x < curveNumberOfPoints; x++)
                 {
@@ -200,7 +204,7 @@ public class IslandGenerator : MonoBehaviour
             {
                 for (int x = 0; x < curveNumberOfPoints; x++)
                 {
-                    float t = i / (float)curveNumberOfPoints;
+                    float t = x / (float)curveNumberOfPoints;
                     Vector2 position = CalculateQuadraticBezierPoint(t, halfwayPoints[i], edgeVertices[0], halfwayPoints[0]);
                     curveVerticesList.Add(position);
                 }
@@ -268,7 +272,7 @@ public class IslandGenerator : MonoBehaviour
     {
         var triangleVerts = GameObject.Find("Island").GetComponent<IslandGenerator>().islandMesh.vertices;
         var triangleIndices = GameObject.Find("Island").GetComponent<IslandGenerator>().islandMesh.triangles;
-        int randomTriangle = Random.Range(0, (triangleVerts.Length * 2) / 3);
+        //int randomTriangle = Random.Range(0, (triangleVerts.Length * 2) / 3);
         bool HouseSpawned = false;
         int flipHouseX = Random.Range(0, 2);
         List<List<Vector2>> triangleList = new List<List<Vector2>>();
@@ -279,9 +283,18 @@ public class IslandGenerator : MonoBehaviour
                 var vert1 = triangleIndices[i];
                 var vert2 = triangleIndices[i + 1];
                 var vert3 = triangleIndices[i + 2];
-                triangleList.Add(new List<Vector2> { triangleVerts[vert1], triangleVerts[vert2], triangleVerts[vert3] });
+                Vector2[] areaCheck = { triangleVerts[vert1], triangleVerts[vert2], triangleVerts[vert3] };
+
+                if (TriangleArea(areaCheck) > 40.0f)
+                {
+                    triangleList.Add(new List<Vector2> { triangleVerts[vert1], triangleVerts[vert2], triangleVerts[vert3] });
+                }
+                //triangleList.Add(new List<Vector2> { triangleVerts[vert1], triangleVerts[vert2], triangleVerts[vert3] });
             }
         }
+        int randomTriangle = Random.Range(0, triangleList.Count);
+        Debug.Log("Length of trianglelist: " + triangleList.Count);
+        Debug.Log("randomtriangle int: " + randomTriangle);
         var chosenTriangle = triangleList[randomTriangle];
         Vector2[] chosenTriangleList = new Vector2[chosenTriangle.Count];
         for (int i = 0; i < chosenTriangle.Count; i++)
@@ -293,25 +306,20 @@ public class IslandGenerator : MonoBehaviour
         {
             if (InTriangle(houseSpawnPoint, chosenTriangle[0], chosenTriangle[1], chosenTriangle[2]))
             {
-                if (TriangleArea(chosenTriangleList) >= TriangleArea(house.GetComponent<SpriteRenderer>().sprite.vertices))
+                var newHouse = Instantiate(house, houseSpawnPoint, transform.rotation);
+                newHouse.GetComponent<SpriteRenderer>().sortingOrder = 3;
+                if (flipHouseX == 1)
                 {
-                    var newHouse = Instantiate(house, houseSpawnPoint, transform.rotation);
-                    newHouse.GetComponent<SpriteRenderer>().sortingOrder = 3;
-                    if (flipHouseX == 1)
-                    {
-                        newHouse.GetComponent<SpriteRenderer>().flipX = true;
-                    }
-                    //HumanList.Add(HIndex, newHuman);
-                    newHouse.transform.parent = GameObject.Find("Island/Houses").transform;
-                    //HIndex += 1;
-                    //Debug.Log("Triangle Area(): " + TriangleArea(chosenTriangleList));
-                    //Debug.Log("Triangle Area of House(): " + TriangleArea(house.GetComponent<SpriteRenderer>().sprite.vertices));
-                    HouseSpawned = true;
+                    newHouse.GetComponent<SpriteRenderer>().flipX = true;
                 }
+                newHouse.transform.parent = GameObject.Find("Island/Houses").transform;
+                Debug.Log("Triangle Area(): " + TriangleArea(chosenTriangleList));
+                Debug.Log("Triangle Area of House(): " + TriangleArea(house.GetComponent<SpriteRenderer>().sprite.vertices));
+                HouseSpawned = true;
             }
             else
             {
-                randomTriangle = Random.Range(0, (triangleVerts.Length * 2) / 3);
+                randomTriangle = Random.Range(0, triangleList.Count);
                 chosenTriangle = triangleList[randomTriangle];
                 for (int i = 0; i < chosenTriangle.Count; i++)
                 {
