@@ -3,7 +3,9 @@ guid: 6c13082e24e61a340aa78f7074144427
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - ZoomInUI: {instanceID: 0}
+  - ScopeOverlay: {fileID: 4825679737641877370, guid: 82315b4e411e6cd41b94add975c98cd5, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

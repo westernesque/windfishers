@@ -23,7 +23,6 @@ public class HumanAI : MonoBehaviour
         moveTime = 0.0f;
         randomDir = new Vector2(Random.Range(-1, 1), Random.Range(-1, 1));
         posOrNeg = Random.Range(0, 2);
-        //humanAnimation = this.GetComponent<Animator>();
     }
 
     private Vector2 movement;
@@ -44,8 +43,8 @@ public class HumanAI : MonoBehaviour
         outline.transform.localScale = new Vector3(1.5f, 1.5f, 1.0f);
         outline.GetComponent<SpriteRenderer>().color = new Color(1.0f, 0.75f, 0.0f);
         outline.transform.position = this.transform.position;
-        outline.GetComponent<SpriteRenderer>().sortingOrder = 5;
-        outlineTwo.GetComponent<SpriteRenderer>().sortingOrder = 5;
+        outline.GetComponent<SpriteRenderer>().sortingOrder = 2;
+        outlineTwo.GetComponent<SpriteRenderer>().sortingOrder = 2;
     }
 
     private void OnMouseExit()
@@ -78,7 +77,6 @@ public class HumanAI : MonoBehaviour
                 {
                     moveTime = Random.Range(1.0f, 5.0f);
                     moving = false;
-                    humanAnimation.SetBool("IsMoving", false);
                 }
             }
             if (waitTime > 0.0f)
@@ -91,39 +89,14 @@ public class HumanAI : MonoBehaviour
                 randomDir = new Vector2(Random.Range(-1, 1), Random.Range(-1, 1));
                 posOrNeg = Random.Range(0, 2);
                 moving = true;
-                humanAnimation.SetBool("IsMoving", true);
             }
         }
         else
         {
             movement = new Vector2(0.0f, 0.0f);
         }
-        //if (moving == true)
-        //{
-        //    if (moveTime > 0.0f)
-        //    {
-        //        movement = new Vector2(speed.x * randomDir.x, speed.y * randomDir.y);
-        //        moveTime -= Time.deltaTime;
-        //    }
-        //    else
-        //    {
-        //        moveTime = Random.Range(1.0f, 5.0f);
-        //        moving = false;
-        //        humanAnimation.SetBool("IsMoving", false);
-        //    }
-        //}
-        //if (waitTime > 0.0f)
-        //{
-        //    waitTime -= Time.deltaTime;
-        //}
-        //else
-        //{
-        //    waitTime = Random.Range(1.0f, 5.0f);
-        //    randomDir = new Vector2(Random.Range(-1, 1), Random.Range(-1, 1));
-        //    posOrNeg = Random.Range(0, 2);
-        //    moving = true;
-        //    humanAnimation.SetBool("IsMoving", true);
-        //}
+        ChangeAnimation();
+
     }
 
 
@@ -137,5 +110,109 @@ public class HumanAI : MonoBehaviour
         {
             GetComponent<Rigidbody2D>().velocity = -movement;
         }
+    }
+
+    void ChangeAnimation()
+    {
+        if (Mathf.Sign(GetComponent<Rigidbody2D>().velocity.x) > 0 && GetComponent<Rigidbody2D>().velocity.x != 0.0f)
+        {
+            if (Mathf.Sign(GetComponent<Rigidbody2D>().velocity.y) > 0 && GetComponent<Rigidbody2D>().velocity.y != 0.0f)
+            {
+                humanAnimation.SetBool("Idle", false);
+                humanAnimation.SetBool("Up", false);
+                humanAnimation.SetBool("Down", false);
+                humanAnimation.SetBool("UpRight", true);
+                humanAnimation.SetBool("UpLeft", false);
+                humanAnimation.SetBool("DownRight", false);
+                humanAnimation.SetBool("DownLeft", false);
+            }
+            else if (Mathf.Sign(GetComponent<Rigidbody2D>().velocity.y) < 0 && GetComponent<Rigidbody2D>().velocity.y != 0.0f)
+            {
+                humanAnimation.SetBool("Idle", false);
+                humanAnimation.SetBool("Up", false);
+                humanAnimation.SetBool("Down", false);
+                humanAnimation.SetBool("UpRight", false);
+                humanAnimation.SetBool("UpLeft", false);
+                humanAnimation.SetBool("DownRight", true);
+                humanAnimation.SetBool("DownLeft", false);
+            }
+            else if (GetComponent<Rigidbody2D>().velocity.y == 0.0f)
+            {
+                humanAnimation.SetBool("Idle", false);
+                humanAnimation.SetBool("Up", false);
+                humanAnimation.SetBool("Down", false);
+                humanAnimation.SetBool("UpRight", false);
+                humanAnimation.SetBool("UpLeft", false);
+                humanAnimation.SetBool("DownRight", true);
+                humanAnimation.SetBool("DownLeft", false);
+            }
+        }
+        else if (Mathf.Sign(GetComponent<Rigidbody2D>().velocity.x) < 0 && GetComponent<Rigidbody2D>().velocity.x != 0.0f)
+        {
+            if (Mathf.Sign(GetComponent<Rigidbody2D>().velocity.y) < 0 && GetComponent<Rigidbody2D>().velocity.y != 0.0f)
+            {
+                humanAnimation.SetBool("Idle", false);
+                humanAnimation.SetBool("Up", false);
+                humanAnimation.SetBool("Down", false);
+                humanAnimation.SetBool("UpRight", false);
+                humanAnimation.SetBool("UpLeft", false);
+                humanAnimation.SetBool("DownRight", false);
+                humanAnimation.SetBool("DownLeft", true);
+            }
+            else if (Mathf.Sign(GetComponent<Rigidbody2D>().velocity.y) > 0 && GetComponent<Rigidbody2D>().velocity.y != 0.0f)
+            {
+                humanAnimation.SetBool("Idle", false);
+                humanAnimation.SetBool("Up", false);
+                humanAnimation.SetBool("Down", false);
+                humanAnimation.SetBool("UpRight", false);
+                humanAnimation.SetBool("UpLeft", true);
+                humanAnimation.SetBool("DownRight", false);
+                humanAnimation.SetBool("DownLeft", false);
+            }
+            else if (GetComponent<Rigidbody2D>().velocity.y == 0.0f)
+            {
+                humanAnimation.SetBool("Idle", false);
+                humanAnimation.SetBool("Up", false);
+                humanAnimation.SetBool("Down", false);
+                humanAnimation.SetBool("UpRight", false);
+                humanAnimation.SetBool("UpLeft", false);
+                humanAnimation.SetBool("DownRight", false);
+                humanAnimation.SetBool("DownLeft", true);
+            }
+        }
+        else
+        {
+            if (GetComponent<Rigidbody2D>().velocity.x == 0.0f && Mathf.Sign(GetComponent<Rigidbody2D>().velocity.y) < 0)
+            {
+                humanAnimation.SetBool("Idle", false);
+                humanAnimation.SetBool("Up", false);
+                humanAnimation.SetBool("Down", true);
+                humanAnimation.SetBool("UpRight", false);
+                humanAnimation.SetBool("UpLeft", false);
+                humanAnimation.SetBool("DownRight", false);
+                humanAnimation.SetBool("DownLeft", false);
+            }
+            else if (GetComponent<Rigidbody2D>().velocity.x == 0.0f && Mathf.Sign(GetComponent<Rigidbody2D>().velocity.y) > 0 && GetComponent<Rigidbody2D>().velocity.y != 0.0f)
+            {
+                humanAnimation.SetBool("Idle", false);
+                humanAnimation.SetBool("Up", true);
+                humanAnimation.SetBool("Down", false);
+                humanAnimation.SetBool("UpRight", false);
+                humanAnimation.SetBool("UpLeft", false);
+                humanAnimation.SetBool("DownRight", false);
+                humanAnimation.SetBool("DownLeft", false);
+            }
+            else if (GetComponent<Rigidbody2D>().velocity.x == 0.0f && GetComponent<Rigidbody2D>().velocity.y == 0.0f)
+            {
+                humanAnimation.SetBool("Idle", true);
+                humanAnimation.SetBool("Up", false);
+                humanAnimation.SetBool("Down", false);
+                humanAnimation.SetBool("UpRight", false);
+                humanAnimation.SetBool("UpLeft", false);
+                humanAnimation.SetBool("DownRight", false);
+                humanAnimation.SetBool("DownLeft", false);
+            }
+        }
+        this.gameObject.GetComponent<HumanInfo>().CurrentDirection = this.gameObject.GetComponent<Animator>().GetCurrentAnimatorStateInfo(0).fullPathHash;
     }
 }

@@ -68,7 +68,7 @@ public class CloudMovement : MonoBehaviour
             NewCloud = Instantiate(cloud, new Vector3((-IslandBounds.x * WindDirection.x) - 15.0f, Random.Range(-IslandBounds.y - 15.0f, IslandBounds.y + 15.0f), 0.0f), transform.rotation);
         }
         NewCloud.transform.parent = this.transform;
-        NewCloud.GetComponent<SpriteRenderer>().sortingOrder = 5;
+        NewCloud.GetComponent<SpriteRenderer>().sortingOrder = 6;
         NewCloud.GetComponent<SpriteRenderer>().color = new Color(255.0f, 255.0f, 255.0f, 0.5f);
     }
 }

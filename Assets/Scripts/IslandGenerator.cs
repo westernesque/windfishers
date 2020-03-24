@@ -16,6 +16,9 @@ public class IslandGenerator : MonoBehaviour
     public int NumberOfConnectedIslands;
     public List<Vector2> edgeVertices;
     public int[] triangleList;
+    public List<List<Vector2>> grassTriangles;
+    public List<List<Vector2>> humanTriangles;
+    public List<List<Vector2>> allIslandTriangles;
     public int[] newTriangleList;
     public int numberOfHouses;
     public Triangulator tr;
@@ -33,6 +36,11 @@ public class IslandGenerator : MonoBehaviour
         for (int i = 0; i < numberOfHouses; i++)
         {
             PlaceHuts();
+        }
+        PlaceGrass();
+        if (Random.Range(1, 2) > 0)
+        {
+            CreateCliff();
         }
         //if (NumberOfConnectedIslands > 0)
         //{
@@ -53,10 +61,41 @@ public class IslandGenerator : MonoBehaviour
         // Code to cycle through waves here?
     }
 
+    void CreateCliff()
+    {
+        // Step One: select 1-2 random triangles (try with just grass triangles if it doesn't work
+        int numberOfCliffs = Random.Range(1, 3);
+        List<List<Vector2>> cliffList = new List<List<Vector2>>();
+        for (int i = 0; i < numberOfCliffs; i++)
+        {
+            var randomTriangle = Random.Range(0, triangleList.Length);
+            cliffList.Add(allIslandTriangles[randomTriangle]);
+        }
+        // Step Two: creat a copy of that triangle in same place.
+        //for (int i = 0; i < cliffList.Count; i++)
+        //{
+        //    GameObject cliff = new GameObject();
+        //    Mesh cliffMesh = new Mesh();
+        //    Vector3[] cliffVerts = new Vector3[cliffList[i].Count];
+        //    for (int x = 0; x < cliffVerts.Length; x++)
+        //    {
+        //        cliffVerts[x] = new Vector3(cliffList[i][x].x, cliffList[i][x].y, 0.0f);
+        //    }
+        //    cliffMesh.vertices = cliffVerts;
+        //    Debug.Log("cliffList[i]: " + cliffList[i]);
+        //    cliff.AddComponent<MeshFilter>();
+        //    cliff.AddComponent<MeshRenderer>();
+        //}
+        // Step Three: change color for testing.
+        // Step Four add collision line on left back and right sides.
+    }
     void CreateIslandMesh()
     {
         islandMesh = new Mesh();
         sandMeshTest = new Mesh();
+        grassTriangles = new List<List<Vector2>>();
+        humanTriangles = new List<List<Vector2>>();
+        allIslandTriangles = new List<List<Vector2>>();
         if (ConnectedIslands)
         {
             NumberOfConnectedIslands = Random.Range(0, 3);
@@ -102,7 +141,6 @@ public class IslandGenerator : MonoBehaviour
         islandMesh.RecalculateBounds();
 
         GetComponent<MeshFilter>().mesh = islandMesh;
-        //GetComponent<MeshRenderer>().material = (Material)Resources.Load("Materials/GrassSample");
 
         curveIslandMesh();
         VerticesToColliderPoints(islandMesh.vertices);
@@ -128,7 +166,6 @@ public class IslandGenerator : MonoBehaviour
         {
             edgeVertices2D[i] = edgeVertices[i];
         }
-        Debug.Log("Number of Verts for Place Tiles: " + edgeVertices2D.Length);
         int BeachCurveCount = Random.Range(2, edgeVertices2D.Length);
         AnimationCurve beachCurve = new AnimationCurve();
         //float[] beachCurve = new float[BeachCurveCount];
@@ -138,7 +175,7 @@ public class IslandGenerator : MonoBehaviour
         }
         lineRenderer.positionCount = edgeVertices2D.Length;
         lineRenderer.widthCurve = beachCurve;
-        lineRenderer.widthMultiplier = 1.0f;
+        lineRenderer.widthMultiplier = 2.0f;
         lineRenderer.SetPositions(edgeVertices2D);
     }
 
@@ -157,11 +194,56 @@ public class IslandGenerator : MonoBehaviour
         {
             edgeVertices2D[i] = edgeVertices[i];
         }
-        Debug.Log("Number of Verts for Place Tiles: " + edgeVertices2D.Length);
         shoreline.positionCount = edgeVertices2D.Length;
         shoreline.material = Resources.Load<Material>("Materials/Waves");
-        shoreline.widthMultiplier = 2.0f;
+        shoreline.widthMultiplier = 1.5f;
         shoreline.SetPositions(edgeVertices2D);
+    }
+
+    void PlaceGrass()
+    {
+        int grassAmount = Random.Range(5, 50);
+        List<float> grassRot = new List<float> { 0.0f, 90.0f, 180.0f, 270.0f, 360.0f};
+        for (int i = 0; i < grassAmount; i++)
+        {
+            int randomTriangle = Random.Range(0, grassTriangles.Count);
+            int flipGrassX = Random.Range(0, 2);
+            int flipGrassY = Random.Range(0, 2);
+            bool grassSpawned = false;
+            float randomScale = Random.Range(0.5f, 1.0f);
+            var chosenTriangle = grassTriangles[randomTriangle];
+            Vector3 grassPoint = GetRandomPoint(chosenTriangle[0], chosenTriangle[1], chosenTriangle[2]);
+            GameObject grassGameObject = Resources.Load<GameObject>("Prefabs/Foliage/grass_overlay01");
+            while (grassSpawned == false)
+            {
+                if (InTriangle(grassPoint, chosenTriangle[0], chosenTriangle[1], chosenTriangle[2]))
+                {
+                    var grass = Instantiate(grassGameObject, grassPoint, Quaternion.Euler(0, 0, Random.Range(0, grassRot.Count)));
+                    grass.name = "Grass";
+                    if (flipGrassX == 1)
+                    {
+                        grass.GetComponent<SpriteRenderer>().flipX = true;
+                    }
+                    if (flipGrassY == 1)
+                    {
+                        grass.GetComponent<SpriteRenderer>().flipY = true;
+                    }
+                    grass.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, Random.Range(0.25f, 0.8f));
+                    grass.GetComponent<SpriteRenderer>().sortingOrder = 2;
+                    grass.GetComponent<SpriteRenderer>().transform.localScale = new Vector3(randomScale, randomScale, 1.0f);
+                    grass.transform.parent = GameObject.Find("Island/Foliage").transform;
+                    grassSpawned = true;
+                }
+                else
+                {
+                    randomTriangle = Random.Range(0, grassTriangles.Count);
+                    chosenTriangle = grassTriangles[randomTriangle];
+                    grassPoint = GetRandomPoint(chosenTriangle[0], chosenTriangle[1], chosenTriangle[2]);
+                }
+            }
+        }
+        // Place animated grass fields here.
+        // Bugfix -- some kind of mask so that grass can't go beyond bounds of island.
     }
 
     void curveIslandMesh()
@@ -267,7 +349,6 @@ public class IslandGenerator : MonoBehaviour
         p += tt * p2;
         return p;
     }
-
     void PlaceHuts()
     {
         var triangleVerts = GameObject.Find("Island").GetComponent<IslandGenerator>().islandMesh.vertices;
@@ -284,10 +365,15 @@ public class IslandGenerator : MonoBehaviour
                 var vert2 = triangleIndices[i + 1];
                 var vert3 = triangleIndices[i + 2];
                 Vector2[] areaCheck = { triangleVerts[vert1], triangleVerts[vert2], triangleVerts[vert3] };
-
+                allIslandTriangles.Add(new List<Vector2> { triangleVerts[vert1], triangleVerts[vert2], triangleVerts[vert3] });
                 if (TriangleArea(areaCheck) > 40.0f)
                 {
                     triangleList.Add(new List<Vector2> { triangleVerts[vert1], triangleVerts[vert2], triangleVerts[vert3] });
+                    humanTriangles.Add(new List<Vector2> { triangleVerts[vert1], triangleVerts[vert2], triangleVerts[vert3] });
+                    if (TriangleArea(areaCheck) > 75.0f)
+                    {
+                        grassTriangles.Add(new List<Vector2> { triangleVerts[vert1], triangleVerts[vert2], triangleVerts[vert3] });
+                    }
                 }
                 //triangleList.Add(new List<Vector2> { triangleVerts[vert1], triangleVerts[vert2], triangleVerts[vert3] });
             }
