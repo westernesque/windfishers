@@ -1,8 +1,6 @@
-﻿using JetBrains.Annotations;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -41,7 +39,6 @@ public class IslandGeneration : MonoBehaviour
         // Creates and places islands. Includes all mesh work and any collider stuff.
         void CreateIslands()
         {
-            //List<GameObject> IslandList = new List<GameObject>();
             // There will always be a "main island" even if there are no connecting islands.
             GameObject MainIsland = new GameObject();
             MainIsland.name = "Main Island";
@@ -96,7 +93,7 @@ public class IslandGeneration : MonoBehaviour
                     ConnectedIsland.AddComponent<MeshFilter>();
                     ConnectedIsland.AddComponent<MeshRenderer>();
                     ConnectedIsland.AddComponent<EdgeCollider2D>();
-                    ConnectedIsland.GetComponent<MeshFilter>().mesh = IslandGenerator.Generate(connectingIslandVertices);
+                    ConnectedIsland.GetComponent<MeshFilter>().mesh = IslandTools.GenerateMesh(connectingIslandVertices);
                     ConnectedIsland.GetComponent<EdgeCollider2D>().points = connectingIslandVertices;
 
                     // Edge stuff for the island curves.
@@ -116,7 +113,6 @@ public class IslandGeneration : MonoBehaviour
                     IslandList.Add(ConnectedIsland);
                 }
             }
-            //IslandProperties["IslandsPlaced"] = true;
         }
 
         // Creates and places cliffs. Includes all cliff collider stuff as well.
@@ -124,14 +120,25 @@ public class IslandGeneration : MonoBehaviour
         {
             foreach (Transform island in GameObject.Find("Island").transform)
             {
-                // Pick a random (or two) from each island. Clone it for now and move it up.
-                Vector3[] triangleVertices = island.gameObject.GetComponent<MeshFilter>().mesh.vertices;
-                int[] triangleIndices = island.gameObject.GetComponent<MeshFilter>().mesh.triangles;
-                int triangleCount = triangleVertices.Length;
-                List<Vector3> IslandTriangles = new List<Vector3>();
+                // Decide if island will have cliff in first place.
+                bool hasCliff = (UnityEngine.Random.Range(0, 2) == 0);
+                if (hasCliff)
+                {
+                    Debug.Log("Generate cliff for " + island.gameObject.name);
+                    Vector3[] islandVertices = island.gameObject.GetComponent<MeshFilter>().mesh.vertices;
+                    int chosenPoint = UnityEngine.Random.Range(islandVertices.Length / 4, (islandVertices.Length / 4) * 3);
+                    //Vector3 p1 = islandVertices[chosenPoint];
+                    Vector3 p1 = islandVertices[0];
+                    //Vector3 p2 = islandVertices[(chosenPoint * 2) % islandVertices.Length];
+                    Vector3 p2 = islandVertices[islandVertices.Length / 2];
+                    GameObject debugCircle = Resources.Load<GameObject>("Prefabs/Debug Circle");
+                    GameObject pf1 =Instantiate(debugCircle, p1, Quaternion.identity);
+                    pf1.transform.parent = island.transform;
+                    GameObject pf2 = Instantiate(debugCircle, p2, Quaternion.identity);
+                    pf2.transform.parent = island.transform;
+                }
 
             }
-            //IslandProperties["CliffsPlaced"] = true;
         }
 
         // Creates and randomly places islands. Should also include interior item placement (that are not power ups).
@@ -198,6 +205,16 @@ public class IslandGeneration : MonoBehaviour
                 Camera.main.transform.position = new Vector3(IslandList[0].transform.position.x, IslandList[0].transform.position.y, Camera.main.transform.position.z);
             }
         }
+        //if (IslandProperties["CliffsPlaced"] == false)
+        //{
+        //    foreach (GameObject island in IslandList)
+        //    {
+        //        foreach (Transform cliff in island.transform)
+        //        {
+        //            cliff.transform.position = island.transform.position;
+        //        }
+        //    }
+        //}
 
         if (!IslandProperties.ContainsValue(false))
         {
