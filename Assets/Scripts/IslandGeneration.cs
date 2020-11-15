@@ -126,14 +126,22 @@ public class IslandGeneration : MonoBehaviour
                 {
                     Debug.Log("Generate cliff for " + island.gameObject.name);
                     Vector3[] islandVertices = island.gameObject.GetComponent<MeshFilter>().mesh.vertices;
-                    Vector2[] cliffVertices = new Vector2[(islandVertices.Length / 2) + 1];
-                    Vector3 p1 = islandVertices[0];
+                    int cliffJitter = UnityEngine.Random.Range(0, 5);
+                    Vector2[] cliffVertices = new Vector2[(islandVertices.Length / 2) + 1 + cliffJitter];
                     List<Vector2> c_Vertices = new List<Vector2>();
-                    for (int i = 0; i < (islandVertices.Length / 2) - 1; i++)
+                    for (int i = 0; i < (islandVertices.Length / 2) - cliffJitter; i++)
                     {
                         cliffVertices[i] = islandVertices[i];
                         c_Vertices.Add(cliffVertices[i]);
 
+                    }
+                    float distanceBetweenCliffEnds = Vector3.Distance(cliffVertices[0], cliffVertices[cliffVertices.Length - cliffJitter]);
+                    float newPointDistance = distanceBetweenCliffEnds / cliffJitter;
+                    Debug.Log(distanceBetweenCliffEnds);
+                    for (int i = 0; i < cliffJitter; i++)
+                    {
+                        float cliffJitterYOffset = UnityEngine.Random.Range(-3f, 3f);
+                        cliffVertices[(cliffVertices.Length - 1) - i] = new Vector2();
                     }
                     cliffVertices[cliffVertices.Length - 1] = islandVertices[0];
                     c_Vertices.Add(islandVertices[0]);
@@ -148,12 +156,6 @@ public class IslandGeneration : MonoBehaviour
                     cliffGameObject.GetComponent<EdgeCollider2D>().points = cliffVertices;
                     IslandTools.GenerateCurveMesh(c_Vertices, cliffGameObject);
                     cliffGameObject.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Materials/Grass");
-                    Vector3 p2 = islandVertices[islandVertices.Length / 2];
-                    GameObject debugCircle = Resources.Load<GameObject>("Prefabs/Debug Circle");
-                    GameObject pf1 =Instantiate(debugCircle, p1, Quaternion.identity);
-                    pf1.transform.parent = island.transform;
-                    GameObject pf2 = Instantiate(debugCircle, p2, Quaternion.identity);
-                    pf2.transform.parent = island.transform;
                 }
 
             }
