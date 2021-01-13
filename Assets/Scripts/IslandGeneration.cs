@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -31,6 +32,7 @@ public class IslandGeneration : MonoBehaviour
         {
             CreateIslands();
             CreateCliffs();
+            CreateMountains();
             CreateHouses();
             CreateFoliage();
             CreateWaves();
@@ -59,6 +61,7 @@ public class IslandGeneration : MonoBehaviour
             };
             MainIsland.GetComponent<MeshFilter>().mesh = IslandTools.GenerateMesh(mainIslandVertices);
             MainIsland.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Materials/Grass");
+            MainIsland.GetComponent<MeshRenderer>().material.SetColor("_Color", new Color(0.9811321f, 0.8957226f, 0.644832f, 1.0f));
             MainIsland.GetComponent<EdgeCollider2D>().points = mainIslandVertices;
             
             // Curve mesh stuff.
@@ -85,10 +88,12 @@ public class IslandGeneration : MonoBehaviour
                     ConnectedIsland.transform.parent = GameObject.Find("Island").transform;
                     Vector2[] connectingIslandVertices = new Vector2[]
                     {
-                        new Vector2(-UnityEngine.Random.Range(0, IslandSize / UnityEngine.Random.Range(1, 2)), 0),
-                        new Vector2(-UnityEngine.Random.Range(0, IslandSize / UnityEngine.Random.Range(1, 2)), UnityEngine.Random.Range(0, IslandSize / UnityEngine.Random.Range(1, 2))),
-                        new Vector2(0, UnityEngine.Random.Range(0, IslandSize / UnityEngine.Random.Range(1, 2))),
-                        new Vector2(UnityEngine.Random.Range(0, IslandSize / UnityEngine.Random.Range(1, 2)), 0)
+                        new Vector2(-UnityEngine.Random.Range(0, IslandSize / UnityEngine.Random.Range(2, 4)), UnityEngine.Random.Range(0, IslandSize / UnityEngine.Random.Range(2, 4))),
+                        new Vector2(0, UnityEngine.Random.Range(0, IslandSize / UnityEngine.Random.Range(2, 4))),
+                        new Vector2(UnityEngine.Random.Range(0, IslandSize / UnityEngine.Random.Range(2, 4)), UnityEngine.Random.Range(0, IslandSize / UnityEngine.Random.Range(2, 4))),
+                        new Vector2(UnityEngine.Random.Range(0, IslandSize / UnityEngine.Random.Range(2, 4)), -UnityEngine.Random.Range(0, IslandSize / UnityEngine.Random.Range(2, 4))),
+                        new Vector2(0, UnityEngine.Random.Range(0, -(IslandSize / UnityEngine.Random.Range(2, 4)))),
+                        new Vector2(-UnityEngine.Random.Range(0, IslandSize / UnityEngine.Random.Range(2, 4)), -UnityEngine.Random.Range(0, IslandSize / UnityEngine.Random.Range(2, 4)))
                     };
                     ConnectedIsland.AddComponent<MeshFilter>();
                     ConnectedIsland.AddComponent<MeshRenderer>();
@@ -102,14 +107,16 @@ public class IslandGeneration : MonoBehaviour
                     {
                         ci_edgeVertices.Add(connectingIslandVertices[c]);
                     }
-                    ci_edgeVertices.Add(connectingIslandVertices[0]);
+                    //ci_edgeVertices.Add(connectingIslandVertices[0]);
                     Vector3[] ci_edgeVertices2D = new Vector3[ci_edgeVertices.Count];
                     for (int c = 0; c < ci_edgeVertices.Count; c++)
                     {
                         ci_edgeVertices2D[c] = ci_edgeVertices[c];
                     }
+                    ci_edgeVertices.Add(connectingIslandVertices[0]);
                     IslandTools.GenerateCurveMesh(ci_edgeVertices, ConnectedIsland);
                     ConnectedIsland.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Materials/Grass");
+                    ConnectedIsland.GetComponent<MeshRenderer>().material.SetColor("_Color", new Color(0.9811321f, 0.8957226f, 0.644832f, 1.0f));
                     IslandList.Add(ConnectedIsland);
                 }
             }
@@ -118,47 +125,102 @@ public class IslandGeneration : MonoBehaviour
         // Creates and places cliffs. Includes all cliff collider stuff as well.
         void CreateCliffs()
         {
+            Vector3 LerpByDistance(Vector3 A, Vector3 B, float x)
+            {
+                Vector3 P = x * Vector3.Normalize(B - A) + A;
+                return P;
+            }
+
             foreach (Transform island in GameObject.Find("Island").transform)
             {
                 // Decide if island will have cliff in first place.
                 bool hasCliff = (UnityEngine.Random.Range(0, 2) == 0);
                 if (hasCliff)
                 {
-                    Debug.Log("Generate cliff for " + island.gameObject.name);
-                    Vector3[] islandVertices = island.gameObject.GetComponent<MeshFilter>().mesh.vertices;
-                    int cliffJitter = UnityEngine.Random.Range(0, 5);
-                    Vector2[] cliffVertices = new Vector2[(islandVertices.Length / 2) + 1 + cliffJitter];
-                    List<Vector2> c_Vertices = new List<Vector2>();
-                    for (int i = 0; i < (islandVertices.Length / 2) - cliffJitter; i++)
+                    GameObject Cliff = new GameObject();
+                    Cliff.name = "Cliff";
+                    Cliff.transform.parent = island.transform;
+                    Cliff.AddComponent<MeshFilter>();
+                    Cliff.AddComponent<MeshRenderer>();
+                    Cliff.AddComponent<EdgeCollider2D>();
+                    Vector3[] islandVertices = island.GetComponent<MeshFilter>().mesh.vertices;
+                    int cliffJitter = UnityEngine.Random.Range(30, 50);
+                    Vector3 closestPoint1 = new Vector3();
+                    Vector3 closestPoint2 = new Vector3();
+                    Vector3 referencePoint1 = new Vector3(island.GetComponent<MeshFilter>().mesh.bounds.min.x, island.GetComponent<MeshFilter>().mesh.bounds.center.y, 0.0f);
+                    Vector3 referencePoint2 = new Vector3(island.GetComponent<MeshFilter>().mesh.bounds.max.x, island.GetComponent<MeshFilter>().mesh.bounds.center.y, 0.0f);
+                    float pointDistance1 = Vector3.Distance(referencePoint1, islandVertices[0]);
+                    float pointDistance2 = Vector3.Distance(referencePoint2, islandVertices[0]);
+                    foreach (Vector3 point in islandVertices)
                     {
-                        cliffVertices[i] = islandVertices[i];
-                        c_Vertices.Add(cliffVertices[i]);
-
+                        if (Vector3.Distance(point, referencePoint1) < pointDistance1)
+                        {
+                            closestPoint1 = point;
+                            pointDistance1 = Vector3.Distance(point, referencePoint1);
+                        }
+                        if (Vector3.Distance(point, referencePoint2) < pointDistance2)
+                        {
+                            closestPoint2 = point;
+                            pointDistance2 = Vector3.Distance(point, referencePoint2);
+                        }
                     }
-                    float distanceBetweenCliffEnds = Vector3.Distance(cliffVertices[0], cliffVertices[cliffVertices.Length - cliffJitter]);
-                    float newPointDistance = distanceBetweenCliffEnds / cliffJitter;
-                    Debug.Log(distanceBetweenCliffEnds);
+
+                    int currentIndexPos = Array.IndexOf(islandVertices, closestPoint1);
+                    List<Vector2> _cliffVertices = new List<Vector2>();
+                    List<Vector2> _cliffsideVertices = new List<Vector2>();
+                    int pointsToAdd = 0;
+                    if (closestPoint1.y > islandVertices[0].y)
+                    {
+                        pointsToAdd = Mathf.Abs(Array.IndexOf(islandVertices, closestPoint2) - Array.IndexOf(islandVertices, closestPoint1));
+                    }
+                    else
+                    {
+                        pointsToAdd = Mathf.Abs(islandVertices.Length - Array.IndexOf(islandVertices, closestPoint1)) + Array.IndexOf(islandVertices, closestPoint2);
+                    }
+                    for (int i = 0; i < pointsToAdd; i++)
+                    {
+                        if (currentIndexPos < islandVertices.Length)
+                        {
+                            _cliffVertices.Add(islandVertices[currentIndexPos]);
+                            currentIndexPos += 1;
+                        }
+                        else
+                        {
+                            _cliffVertices.Add(islandVertices[0]);
+                            currentIndexPos = 1;
+                        }
+                    }
+                    float cliffJitterDistance = Vector3.Distance(_cliffVertices[0], _cliffVertices.Last()) / cliffJitter;
+                    float cliffPointDistance = Vector3.Distance(_cliffVertices[0], _cliffVertices.Last());
                     for (int i = 0; i < cliffJitter; i++)
                     {
-                        float cliffJitterYOffset = UnityEngine.Random.Range(-3f, 3f);
-                        cliffVertices[(cliffVertices.Length - 1) - i] = new Vector2();
+                        Vector3 point = LerpByDistance(_cliffVertices[0], _cliffVertices.Last(), cliffPointDistance);
+                        point = new Vector3(point.x, point.y += UnityEngine.Random.Range(-3.0f, 0.0f), point.z);
+                        _cliffVertices.Add(point);
+                        _cliffsideVertices.Add(point);
+                        cliffPointDistance -= cliffJitterDistance;
                     }
-                    cliffVertices[cliffVertices.Length - 1] = islandVertices[0];
-                    c_Vertices.Add(islandVertices[0]);
-                    GameObject cliffGameObject = new GameObject();
-                    cliffGameObject.name = "Cliff";
-                    cliffGameObject.transform.parent = island.transform;
-                    cliffGameObject.AddComponent<MeshFilter>();
-                    cliffGameObject.AddComponent<MeshRenderer>();
-                    cliffGameObject.AddComponent<EdgeCollider2D>();
-                    cliffGameObject.GetComponent<MeshFilter>().mesh = IslandTools.GenerateMesh(cliffVertices);
-                    cliffGameObject.transform.position = new Vector3(cliffGameObject.transform.position.x, cliffGameObject.transform.position.y + 5, cliffGameObject.transform.position.z);
-                    cliffGameObject.GetComponent<EdgeCollider2D>().points = cliffVertices;
-                    IslandTools.GenerateCurveMesh(c_Vertices, cliffGameObject);
-                    cliffGameObject.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Materials/Grass");
-                }
+                    for (int i = 0; i  < _cliffsideVertices.Count; i++)
+                    {
+                        //_cliffsideVertices.Add();
+                    }
+                    _cliffVertices.Add(_cliffVertices[0]);
+                    Vector2[] cliffVertices = _cliffVertices.ToArray();
+                    Cliff.GetComponent<EdgeCollider2D>().points = cliffVertices;
+                    IslandTools.GenerateCurveMesh(_cliffVertices, Cliff);
+                    Cliff.transform.position = new Vector3(Cliff.transform.position.x, Cliff.transform.position.y + 5.0f, Cliff.transform.position.z);
+                    Cliff.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Materials/Grass");
 
+                    // Generate cliffside texture.
+                    // 
+                }
             }
+        }
+
+        // Creates hills or mountains (only on cliffs). Includes all colliderstuff.
+        void CreateMountains()
+        {
+
         }
 
         // Creates and randomly places islands. Should also include interior item placement (that are not power ups).
