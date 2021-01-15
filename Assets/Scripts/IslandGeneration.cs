@@ -195,24 +195,58 @@ public class IslandGeneration : MonoBehaviour
                     for (int i = 0; i < cliffJitter; i++)
                     {
                         Vector3 point = LerpByDistance(_cliffVertices[0], _cliffVertices.Last(), cliffPointDistance);
-                        point = new Vector3(point.x, point.y += UnityEngine.Random.Range(-3.0f, 0.0f), point.z);
+                        point = new Vector3(point.x, point.y + UnityEngine.Random.Range(-3.0f, 0.0f), point.z);
                         _cliffVertices.Add(point);
                         _cliffsideVertices.Add(point);
                         cliffPointDistance -= cliffJitterDistance;
                     }
-                    for (int i = 0; i  < _cliffsideVertices.Count; i++)
+                    int cliffsidePointsToAdd = _cliffsideVertices.Count;
+                    for (int i = 0; i < cliffsidePointsToAdd; i++)
                     {
-                        //_cliffsideVertices.Add();
+                        Vector3 point = new Vector3(_cliffsideVertices[(cliffsidePointsToAdd - 1) - i].x, _cliffsideVertices[(cliffsidePointsToAdd -1) - i].y - 2.5f, 0.0f);
+                        _cliffsideVertices.Add(point);
                     }
                     _cliffVertices.Add(_cliffVertices[0]);
+                    //_cliffsideVertices.Add(_cliffsideVertices[0]);
                     Vector2[] cliffVertices = _cliffVertices.ToArray();
+                    Vector2[] cliffsideVertices = _cliffsideVertices.ToArray();
                     Cliff.GetComponent<EdgeCollider2D>().points = cliffVertices;
                     IslandTools.GenerateCurveMesh(_cliffVertices, Cliff);
-                    Cliff.transform.position = new Vector3(Cliff.transform.position.x, Cliff.transform.position.y + 5.0f, Cliff.transform.position.z);
+                    Cliff.transform.position = new Vector3(Cliff.transform.position.x, Cliff.transform.position.y + 2.5f, -1.0f);
                     Cliff.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Materials/Grass");
 
                     // Generate cliffside texture.
-                    // 
+                    GameObject Cliffside = new GameObject();
+                    Cliffside.name = "Cliffisde";
+                    Cliffside.transform.parent = Cliff.transform;
+                    Cliffside.transform.position = new Vector3(Cliff.transform.position.x, Cliff.transform.position.y, Cliff.transform.position.z);
+                    Cliffside.AddComponent<MeshFilter>();
+                    Cliffside.AddComponent<MeshRenderer>();
+                    Cliffside.GetComponent<MeshFilter>().mesh = IslandTools.GenerateMesh(cliffsideVertices);
+                    Cliffside.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Materials/Cliffside/Cliffside 01");
+                    // 1. load all cliffside textures
+                    Texture[] cliffsideTextures = Resources.LoadAll<Texture>("Materials/Cliffside");
+                    // 2. get width of those textures
+                    Dictionary<Texture, float> cliffsideTextureWidths = new Dictionary<Texture, float>();
+                    for (int i = 0; i < cliffsideTextures.Length; i++)
+                    {
+                        cliffsideTextureWidths.Add(cliffsideTextures[i], cliffsideTextures[i].width);
+                    }
+                    float cliffsideLength = 0.0f;
+                    for (int i = 0; i < cliffsideVertices.Length / 2; i++)
+                    {
+                        cliffsideLength += Vector2.Distance(cliffsideVertices[i], cliffsideVertices[i + 1]);
+                    }
+                    Debug.Log("length of cliffside: " + cliffsideLength);
+                    GameObject debugCircle1 = Resources.Load<GameObject>("Prefabs/Debug Circle");
+                    Instantiate(debugCircle1, cliffsideVertices[0], Quaternion.identity);
+                    // 3. get width of cliffside?
+                    //      -- get distance between each point in cliffside
+                    // 4. number of cliffs = divide cliffside width by width of textures
+                    // 5. loop through number of cliffs and instantiate a *RANDOM* cliffside
+                    // 6. combine meshes into one
+                    // 7. set main cliffside mesh to the combined mesh
+                    // 8. delete the meshes after??
                 }
             }
         }
