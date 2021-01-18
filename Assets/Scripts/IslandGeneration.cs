@@ -192,12 +192,14 @@ public class IslandGeneration : MonoBehaviour
                     }
                     float cliffJitterDistance = Vector3.Distance(_cliffVertices[0], _cliffVertices.Last()) / cliffJitter;
                     float cliffPointDistance = Vector3.Distance(_cliffVertices[0], _cliffVertices.Last());
+                    GameObject debugCircle1 = Resources.Load<GameObject>("Prefabs/Debug Circle");
                     for (int i = 0; i < cliffJitter; i++)
                     {
                         Vector3 point = LerpByDistance(_cliffVertices[0], _cliffVertices.Last(), cliffPointDistance);
                         point = new Vector3(point.x, point.y + UnityEngine.Random.Range(-3.0f, 0.0f), point.z);
                         _cliffVertices.Add(point);
                         _cliffsideVertices.Add(point);
+                        //Instantiate(debugCircle1, _cliffsideVertices[i], Quaternion.identity, Cliff.transform);
                         cliffPointDistance -= cliffJitterDistance;
                     }
                     int cliffsidePointsToAdd = _cliffsideVertices.Count;
@@ -226,27 +228,13 @@ public class IslandGeneration : MonoBehaviour
                     Cliffside.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Materials/Cliffside/Cliffside 01");
                     // 1. load all cliffside textures
                     Texture[] cliffsideTextures = Resources.LoadAll<Texture>("Materials/Cliffside");
-                    // 2. get width of those textures
-                    Dictionary<Texture, float> cliffsideTextureWidths = new Dictionary<Texture, float>();
-                    for (int i = 0; i < cliffsideTextures.Length; i++)
+                    GameObject cliffSprite = Resources.Load<GameObject>("Prefabs/Foliage/Cliffside/Cliffside 01");
+                    for (int i = 0; i < cliffVertices.Length; i++)
                     {
-                        cliffsideTextureWidths.Add(cliffsideTextures[i], cliffsideTextures[i].width);
+                        Instantiate<GameObject>(cliffSprite, cliffVertices[i], Quaternion.identity, Cliffside.transform);
                     }
-                    float cliffsideLength = 0.0f;
-                    for (int i = 0; i < cliffsideVertices.Length / 2; i++)
-                    {
-                        cliffsideLength += Vector2.Distance(cliffsideVertices[i], cliffsideVertices[i + 1]);
-                    }
-                    Debug.Log("length of cliffside: " + cliffsideLength);
-                    GameObject debugCircle1 = Resources.Load<GameObject>("Prefabs/Debug Circle");
-                    Instantiate(debugCircle1, cliffsideVertices[0], Quaternion.identity);
-                    // 3. get width of cliffside?
-                    //      -- get distance between each point in cliffside
-                    // 4. number of cliffs = divide cliffside width by width of textures
-                    // 5. loop through number of cliffs and instantiate a *RANDOM* cliffside
-                    // 6. combine meshes into one
-                    // 7. set main cliffside mesh to the combined mesh
-                    // 8. delete the meshes after??
+                    // render a random cliff sprite
+                    // combine meshes of those sprites
                 }
             }
         }
