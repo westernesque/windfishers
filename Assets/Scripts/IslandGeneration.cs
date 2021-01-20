@@ -209,7 +209,7 @@ public class IslandGeneration : MonoBehaviour
                         _cliffsideVertices.Add(point);
                     }
                     _cliffVertices.Add(_cliffVertices[0]);
-                    //_cliffsideVertices.Add(_cliffsideVertices[0]);
+                    _cliffsideVertices.Add(_cliffsideVertices[0]);
                     Vector2[] cliffVertices = _cliffVertices.ToArray();
                     Vector2[] cliffsideVertices = _cliffsideVertices.ToArray();
                     Cliff.GetComponent<EdgeCollider2D>().points = cliffVertices;
@@ -225,13 +225,52 @@ public class IslandGeneration : MonoBehaviour
                     Cliffside.AddComponent<MeshFilter>();
                     Cliffside.AddComponent<MeshRenderer>();
                     Cliffside.GetComponent<MeshFilter>().mesh = IslandTools.GenerateMesh(cliffsideVertices);
-                    Cliffside.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Materials/Cliffside/Cliffside 01");
+                    Cliffside.transform.position = new Vector3(Cliff.transform.position.x, Cliff.transform.position.y, Cliff.transform.position.z);
+                    Cliffside.GetComponent<MeshRenderer>().material = Resources.Load<Material>("Materials/Cliffside/Cliffside 02");
+
                     // 1. load all cliffside textures
                     Texture[] cliffsideTextures = Resources.LoadAll<Texture>("Materials/Cliffside");
-                    GameObject cliffSprite = Resources.Load<GameObject>("Prefabs/Foliage/Cliffside/Cliffside 01");
-                    for (int i = 0; i < cliffVertices.Length; i++)
+
+                    // 2. get total distance between all cliff points.
+                    float distanceBetweenCliffPoints = 0.0f;
+                    for (int i = 0; i < cliffVertices.Length - 1; i++)
                     {
-                        Instantiate<GameObject>(cliffSprite, cliffVertices[i], Quaternion.identity, Cliffside.transform);
+                        distanceBetweenCliffPoints += Vector2.Distance(cliffVertices[i], cliffVertices[i + 1]);
+                    }
+                    // debug stuff to be deleted later.
+                    //GameObject cliffSprite = Resources.Load<GameObject>("Prefabs/Foliage/Cliffside/Cliffside 01");
+                    ////Debug.Log("total cliff distance: " + distanceBetweenCliffPoints);
+                    //// Debug.Log("size of cliff sprite.x: " + cliffSprite.GetComponent<SpriteRenderer>().bounds.size.x);
+                    //int cliffSortingLayer = 0;
+                    //for (int i = 0; i < cliffVertices.Length - 1; i++)
+                    //{
+                    //    float cliffSpriteDistance = Vector2.Distance(cliffVertices[i], cliffVertices[i + 1]) / (cliffSprite.GetComponent<SpriteRenderer>().bounds.size.x * 2.0f);
+                    //    Debug.Log("cliffSpriteDistance: " + cliffSpriteDistance);
+                    //    //int cliffSortingLayer = 0;
+                    //    //Instantiate<GameObject>(cliffSprite, cliffVertices[i], Quaternion.identity, Cliffside.transform);
+                    //    //Instantiate<GameObject>(cliffSprite, cliffVertices[i + 1], Quaternion.identity, Cliffside.transform);
+                    //    for (float f = 0.0f; f < cliffSpriteDistance + cliffSprite.GetComponent<SpriteRenderer>().bounds.size.x * 2.0f; f += cliffSprite.GetComponent<SpriteRenderer>().bounds.size.x * 0.85f)
+                    //    {
+                    //        Vector3 point = LerpByDistance(cliffVertices[i], cliffVertices[i + 1], f);
+                    //        point = new Vector3(point.x, point.y, Cliffside.transform.position.z);
+                    //        GameObject cs = Instantiate<GameObject>(cliffSprite, point, Quaternion.identity, Cliffside.transform);
+                    //        if (cliffVertices[i].y < cliffVertices[i + 1].y)
+                    //        {
+                    //            cliffSortingLayer -= 1;
+                    //            cs.GetComponent<SpriteRenderer>().sortingOrder = cliffSortingLayer;
+                    //        }
+                    //        else if (cliffVertices[i].y > cliffVertices[i + 1].y)
+                    //        {
+                    //            cliffSortingLayer += 1;
+                    //            cs.GetComponent<SpriteRenderer>().sortingOrder = cliffSortingLayer;
+                    //        }
+
+                    //    }
+                        // for each i and i + 1, instantiate a cliff until next point is reached
+                        // get distance between i and i + 1
+                        //Vector2 point = LerpByDistance(cliffVertices[i], cliffVertices[i + 1], cliffSpriteDistance);
+                        //Instantiate<GameObject>(cliffSprite, cliffVertices[i], Quaternion.identity, Cliffside.transform);
+                        //Instantiate<GameObject>(cliffSprite, cliffVertices[i + 1], Quaternion.identity, Cliffside.transform);
                     }
                     // render a random cliff sprite
                     // combine meshes of those sprites
