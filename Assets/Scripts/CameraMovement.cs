@@ -20,6 +20,7 @@ public class CameraMovement : MonoBehaviour
     {
         float xAxisValue = Input.GetAxis("Horizontal") * Time.deltaTime * Speed;
         float yAxisValue = Input.GetAxis("Vertical") * Time.deltaTime * Speed;
+        //float zAxisValue = Camera.current.transform.position.z;
         if (Camera.current != null)
         {
             if (Camera.current.transform.position.x < -islandBoundsX - 5.0f)
@@ -38,6 +39,7 @@ public class CameraMovement : MonoBehaviour
             {
                 Camera.current.transform.position = new Vector3(Camera.current.transform.position.x, islandBoundsY + 5.0f, Camera.current.transform.position.z);
             }
+            //Camera.main.transform.Translate(new Vector3(xAxisValue, yAxisValue, 0.0f));
             Camera.main.transform.Translate(new Vector3(xAxisValue, yAxisValue, 0.0f));
         }
     }
