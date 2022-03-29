@@ -65,7 +65,6 @@ public class GrassSpawner : MonoBehaviour
     {
         foreach (var batch in batches)
         {
-            Debug.Log("draw texture called");
             Graphics.DrawTexture(screenRect: Camera.main.rect, texture:sprite.texture, mat: spriteMat);
         }
     }

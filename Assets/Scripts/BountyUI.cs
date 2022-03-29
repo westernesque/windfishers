@@ -38,6 +38,6 @@ public class BountyUI : MonoBehaviour
         Debug.Log("bounty ui found humanSprite: " + humanSprite);
         humanFace = GameObject.Find("Humans").GetComponent<HumanGenerator>().ChosenWaldo.GetComponent<HumanInfo>().face;
         Debug.Log("bounty ui found humanFace: " + humanFace);
-        humanName = GameObject.Find("Humans").GetComponent<HumanGenerator>().ChosenWaldo.name;
+        humanName = GameObject.Find("Humans").GetComponent<HumanGenerator>().ChosenWaldo.name.Replace("\r", "");
     }
 }

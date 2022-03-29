@@ -33,7 +33,7 @@ public class HumanAI : MonoBehaviour
     {
         hovered = true;
         HumanName = this.gameObject.GetComponent<HumanInfo>().HumanName;
-        HumanInfoTMP.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "name: " + HumanName;
+        HumanInfoTMP.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "name: " + HumanName.Replace("\r", "");
         HumanInfoTMP.SetActive(true);
     }
 
