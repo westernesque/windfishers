@@ -47,7 +47,6 @@ SpriteAtlas:
     - {fileID: -4481005551525069752, guid: 0b083df6e482bdd4b816a17e50da03c2, type: 3}
     - {fileID: 3027142203873984067, guid: 0b083df6e482bdd4b816a17e50da03c2, type: 3}
     - {fileID: 5415510342193025285, guid: 0b083df6e482bdd4b816a17e50da03c2, type: 3}
-    totalSpriteSurfaceArea: 4096
     bindAsDefault: 1
     isAtlasV2: 0
     cachedData: {fileID: 0}

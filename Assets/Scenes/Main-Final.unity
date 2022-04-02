@@ -216,8 +216,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1700138096}
   - component: {fileID: 1700138095}
-  - component: {fileID: 1700138098}
-  - component: {fileID: 1700138097}
   m_Layer: 0
   m_Name: Island
   m_TagString: Untagged
@@ -234,13 +232,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 1700138094}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c6bfdb5755da8124380289d29b32c1df, type: 3}
+  m_Script: {fileID: 11500000, guid: 7f0fc363489811d4dbd88d9ca669b46b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ConnectedIslands: 3
-  IslandSize: 200
-  SelectedSeason: 0
-  CloudCoverage: 0
+  IslandName: 
+  IslandSize: 0
+  Weather: 
+  Population: 0
+  Rivers: 0
+  Ponds: 0
+  Mountains: 0
+  SubIslandCount: 0
+  CloudLevel: 
+  TreeLevel: 
+  GrassLevel: 
+  Volcano: 0
 --- !u!4 &1700138096
 Transform:
   m_ObjectHideFlags: 0
@@ -253,57 +259,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!23 &1700138097
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1700138094}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 0}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &1700138098
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1700138094}
-  m_Mesh: {fileID: 0}
 --- !u!1 &1850563709
 GameObject:
   m_ObjectHideFlags: 0
@@ -313,7 +270,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1850563710}
-  - component: {fileID: 1850563711}
   m_Layer: 0
   m_Name: GPU
   m_TagString: Untagged
@@ -333,21 +289,5 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1850563711
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1850563709}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 668304046b3c3b64f9f57703a97acea0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  instances: 0
-  maxPos: {x: 0, y: 0, z: 0}
-  sprite: {fileID: 21300000, guid: 242b99f10be94f74ea7ecddc5ba34364, type: 3}
-  spriteMat: {fileID: 2100000, guid: 0e78a025d254b5c4ebe20c9c2db251dd, type: 2}

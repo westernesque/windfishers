@@ -49,6 +49,7 @@ public class GrassSpawner : MonoBehaviour
     {
         RenderBatches();
     }
+        
 
     private void AddSprite(List<SpriteData> currentBatch, int i)
     {
