@@ -4,21 +4,14 @@ using UnityEngine;
 
 public class IslandInfo : MonoBehaviour
 {
-    // Randomly generated, pulls from the IslandNames.txt file.
     public string IslandName;
-    
-    // Overall island size, including sub-islands.
     public int IslandSize;
-
-    // Randomly generated, pulls from WeatherOptions list.
     public string Weather;
-
-    // Random in range, dependent on the IslandSize variable.
     public int Population;
-    
-    public bool Rivers;
+    public bool Rivers; 
     public bool Ponds;
     public bool Mountains;
+    public bool Cliffs;
     public int SubIslandCount;
     public string CloudLevel;
     public string TreeLevel;
@@ -77,13 +70,123 @@ public class IslandInfo : MonoBehaviour
         // Generate the Population.
         void GeneratePopulation()
         {
-            Population = Random.Range(IslandSize / 4, IslandSize / 2);
+            Population = Random.Range(IslandSize / 5, IslandSize / 3);
         }
 
+        // Generate if the island has rivers.
+        void GenerateRivers()
+        {
+            if (Random.Range(0, 100) < 50)
+            {
+                Rivers = true;
+            }
+            else
+            {
+                Rivers = false;
+            }
+        }
+
+        // Generate if the island has ponds.
+        void GeneratePonds()
+        {
+            if (Random.Range(0, 100) < 50)
+            {
+                Ponds = true;
+            }
+            else
+            {
+                Ponds = false;
+            }
+        }
+
+        // Generate if the island has mountains.
+        void GenerateMountains()
+        {
+            if (Random.Range(0, 100) < 50)
+            {
+                Mountains = true;
+            }
+            else
+            {
+                Mountains = false;
+            }
+        }
+
+        // Generate if the island has cliffs.
+        void GenerateCliffs()
+        {
+            if (Random.Range(0, 100) < 50)
+            {
+                Cliffs = true;
+            }
+            else
+            {
+                Cliffs = false;
+            }
+        }
+
+        // Generate if the island has sub-islands and how many.
+        void GenerateSubIslands()
+        {
+            if (Random.Range(0, 100) < 50)
+            {
+                SubIslandCount = Random.Range(1, 5);
+            }
+            else
+            {
+                SubIslandCount = 0;
+            }
+        }
+
+        // Generate the CloudLevel.
+        void GenerateCloudLevel()
+        {
+            string[] cloudLevelList = { "Clear", "Cloudy", "Overcast", "Stormy" };
+            CloudLevel = cloudLevelList[Random.Range(0, cloudLevelList.Length)];
+        }
+
+        // Generate the TreeLevel.
+        void GenerateTreeLevel()
+        {
+            string[] treeLevelList = { "None", "Low", "Medium", "Thick" };
+            TreeLevel = treeLevelList[Random.Range(0, treeLevelList.Length)];
+        }
+
+        // Generate the GrassLevel.
+        void GenerateGrassLevel()
+        {
+            string[] grassLevelList = { "None", "Low", "Medium", "Thick" };
+            GrassLevel = grassLevelList[Random.Range(0, grassLevelList.Length)];
+        }
+
+        // Generate if the island has a volcano.
+        void GenerateVolcano()
+        {
+            if (Random.Range(0, 100) < 50)
+            {
+                Volcano = true;
+            }
+            else
+            {
+                Volcano = false;
+            }
+        }
+
+
+        // Run all the island generation functions.
         GenerateIslandName();
         GenerateIslandSize();
         GenerateWeather();
         GeneratePopulation();
+        GenerateRivers();
+        GeneratePonds();
+        GenerateMountains();
+        GenerateCliffs();
+        GenerateSubIslands();
+        GenerateCloudLevel();
+        GenerateTreeLevel();
+        GenerateGrassLevel();
+        GenerateVolcano();
     }
 
     void Start()
