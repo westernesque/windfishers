@@ -4,8 +4,18 @@ using UnityEngine;
 
 public class IslandGeneration : MonoBehaviour
 {
-    // Get variables from IslandInfo script.
-    IslandInfo IslandInfo = GameObject.Find("Island").GetComponent<IslandInfo>();
+    IslandInfo IslandInfo;
+    GameObject mainIsland;
+    
+    void Start()
+    {
+        // Get variables from the IslandInfo script.
+        IslandInfo = GameObject.Find("Island").GetComponent<IslandInfo>();
+        // Get the mainIsland game object.
+        mainIsland = GameObject.Find("Main Island");
+        // Set the main island's mesh to be the generated island mesh shape.
+        mainIsland.GetComponent<MeshFilter>().mesh = GenerateMainIslandShape(IslandInfo.IslandSize);
+    }
 
     // Generates the shape of the main island based on the IslandSize var from the IslandInfo script.
     Mesh GenerateMainIslandShape(int IslandSize)
@@ -29,59 +39,43 @@ public class IslandGeneration : MonoBehaviour
         // Set the first vertex to the main island start point.
         mainIslandVertices[0] = mainIslandStartPoint;
         // Set the rest of the vertices to be randomly generated within the islandBounds with an 80% margin if SubIslandCount is 0, else within a 65% margin.
+        // 3D Vector list of the island vertices.
+        Vector3[] mainIslandVertices3D = new Vector3[unsortedMainIslandVertexCount];
         if (IslandInfo.SubIslandCount == 0)
         {
             for (int i = 1; i < unsortedMainIslandVertexCount - 1; i++)
             {
-                mainIslandVertices[i] = new Vector2(Random.Range(islandBounds.x * 0.2f, islandBounds.x * 0.8f), Random.Range(islandBounds.y * 0.2f, islandBounds.y * 0.8f));
+                Vector2 vertex = new Vector2(Random.Range(islandBounds.x * 0.2f, islandBounds.x * 0.8f), Random.Range(islandBounds.y * 0.2f, islandBounds.y * 0.8f));
+                mainIslandVertices[i] = vertex;
+                mainIslandVertices3D[i] = new Vector3(vertex.x, vertex.y, 0f);
             }
         }
         else
         {
             for (int i = 1; i < unsortedMainIslandVertexCount - 1; i++)
             {
-                mainIslandVertices[i] = new Vector2(Random.Range(islandBounds.x * 0.35f, islandBounds.x * 0.65f), Random.Range(islandBounds.y * 0.35f, islandBounds.y * 0.65f));
+                Vector2 vertex = new Vector2(Random.Range(islandBounds.x * 0.35f, islandBounds.x * 0.65f), Random.Range(islandBounds.y * 0.35f, islandBounds.y * 0.65f));
+                mainIslandVertices[i] = vertex;
+                mainIslandVertices3D[i] = new Vector3(vertex.x, vertex.y, 0f);
             }
         }
-        // Set the last vertex to be the same as the first vertex.
-        mainIslandVertices[unsortedMainIslandVertexCount - 1] = mainIslandVertices[0];
-        // List of sorted island vertices.
-        Vector3[] sortedMainIslandVertices = new Vector3[unsortedMainIslandVertexCount];
-        // Sort the unsorted island vertices by the distance from the previous vertex in the list.
-        for (int i = 0; i < unsortedMainIslandVertexCount; i++)
-        {
-            // Loop through the unsorted island vertices.
-            for (int j = 0; j < unsortedMainIslandVertexCount; j++)
-            {
-                // If the current vertex is closer to the previous vertex than the current vertex is to the next vertex.
-                if (Vector2.Distance(sortedMainIslandVertices[i - 1], sortedMainIslandVertices[i]) > Vector2.Distance(sortedMainIslandVertices[i], sortedMainIslandVertices[i + 1]))
-                {
-                    // Set the current vertex to be the next vertex.
-                    sortedMainIslandVertices[i] = sortedMainIslandVertices[i + 1];
-                }
-            }
-        }
-        // Set the last vertex to be the same as the first vertex.
-        sortedMainIslandVertices[unsortedMainIslandVertexCount - 1] = sortedMainIslandVertices[0];
-        // List of island triangles.
-        int[] mainIslandTriangles = new int[(sortedMainIslandVertices.Length - 1) * 3];
-        // Loop through the sorted island vertices.
-        for (int i = 0; i < sortedMainIslandVertices.Length - 1; i++)
-        {
-            // Set the current triangle to be the current vertex, the next vertex, and the previous vertex.
-            mainIslandTriangles[i * 3] = i;
-            mainIslandTriangles[i * 3 + 1] = i + 1;
-            mainIslandTriangles[i * 3 + 2] = i + sortedMainIslandVertices.Length - 1;
-        }
+        // Create a new Triangulator to create the island mesh.
+        Triangulator triangulator = new Triangulator(mainIslandVertices);
+        // Create an int list of indices for the island mesh.
+        int[] mainIslandIndices = triangulator.Triangulate();
+
         // Create a new island mesh.
         Mesh islandMesh = new Mesh();
-        // Set the island vertices.
-        islandMesh.vertices = sortedMainIslandVertices;
-        // Set the island triangles.
-        islandMesh.triangles = mainIslandTriangles;
-        // Set the island normals.
+        // Set the vertices of the island mesh.
+        islandMesh.vertices = mainIslandVertices3D;
+        // Set the triangles of the island mesh.
+        islandMesh.triangles = mainIslandIndices;
+        // Set the normals of the island mesh.
         islandMesh.RecalculateNormals();
-        // Return the island mesh.
+        // Set the bounds of the island mesh.
+        islandMesh.RecalculateBounds();
+
         return islandMesh;
     }
+
 }
