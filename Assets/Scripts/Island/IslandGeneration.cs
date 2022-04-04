@@ -75,6 +75,28 @@ public class IslandGeneration : MonoBehaviour
         // Set the bounds of the island mesh.
         islandMesh.RecalculateBounds();
 
+        // List of halfway points between the main island vertices.
+        Vector2[] halfwayPoints = new Vector2[mainIslandVertices.Length];
+
+        // Get the halfway points between the main island vertices, put them in the halfwayPoints list.
+        for (int i = 0; i < edgeVertices.Count; i++)
+        {
+            if (i < edgeVertices.Count - 1)
+            {
+                float distanceBetweenVecs = Vector2.Distance(edgeVertices[i], edgeVertices[i + 1]);
+                Vector2 halfwayPoint = Vector2.Lerp(edgeVertices[i], edgeVertices[i + 1], (distanceBetweenVecs / 2) / (edgeVertices[i] - edgeVertices[i + 1]).magnitude);
+                halfwayPoints[i] = halfwayPoint;
+            }
+            else
+            {
+                float distanceBetweenVecs = Vector2.Distance(edgeVertices[i], edgeVertices[0]);
+                Vector2 halfwayPoint = Vector2.Lerp(edgeVertices[i], edgeVertices[0], (distanceBetweenVecs / 2) / (edgeVertices[i] - edgeVertices[0]).magnitude);
+                halfwayPoints[i] = halfwayPoint;
+            }
+        }
+
+
+        // Return the island mesh.
         return islandMesh;
     }
 
