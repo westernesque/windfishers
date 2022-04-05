@@ -6,7 +6,9 @@ public class IslandGeneration : MonoBehaviour
 {
     IslandInfo IslandInfo;
     GameObject mainIsland;
-    
+    // Create the islandTools object.
+    IslandTools islandTools = new IslandTools();
+
     void Start()
     {
         // Get variables from the IslandInfo script.
@@ -15,6 +17,7 @@ public class IslandGeneration : MonoBehaviour
         mainIsland = GameObject.Find("Main Island");
         // Set the main island's mesh to be the generated island mesh shape.
         mainIsland.GetComponent<MeshFilter>().mesh = GenerateMainIslandShape(IslandInfo.IslandSize);
+        mainIsland.GetComponent<MeshRenderer>().material = Resources.Load("Materials/Grass") as Material;
     }
 
     // Generates the shape of the main island based on the IslandSize var from the IslandInfo script.
@@ -22,28 +25,16 @@ public class IslandGeneration : MonoBehaviour
     {
         // Set the bounds of the island in 2D space.
         Vector2 islandBounds = new Vector2(IslandSize, IslandSize);
-        Vector2 mainIslandStartPoint = new Vector2();
-        // Picks a random point within the islandBounds with an 80% margin if SubIslandCount count is 0, else within a 65% margin.
-        if (IslandInfo.SubIslandCount == 0)
-        {
-            mainIslandStartPoint = new Vector2(Random.Range(islandBounds.x * 0.2f, islandBounds.x * 0.8f), Random.Range(islandBounds.y * 0.2f, islandBounds.y * 0.8f));
-        }
-        else
-        {
-            mainIslandStartPoint = new Vector2(Random.Range(islandBounds.x * 0.35f, islandBounds.x * 0.65f), Random.Range(islandBounds.y * 0.35f, islandBounds.y * 0.65f));
-        }
         // Randomly generate the number of vertex points the island will have.
-        int unsortedMainIslandVertexCount = Random.Range(5, 25);
+        int mainIslandVertexCount = Random.Range(5, 15);
         // List of island vertices.
-        Vector2[] mainIslandVertices = new Vector2[unsortedMainIslandVertexCount];
-        // Set the first vertex to the main island start point.
-        mainIslandVertices[0] = mainIslandStartPoint;
-        // Set the rest of the vertices to be randomly generated within the islandBounds with an 80% margin if SubIslandCount is 0, else within a 65% margin.
+        Vector2[] mainIslandVertices = new Vector2[mainIslandVertexCount];
         // 3D Vector list of the island vertices.
-        Vector3[] mainIslandVertices3D = new Vector3[unsortedMainIslandVertexCount];
+        Vector3[] mainIslandVertices3D = new Vector3[mainIslandVertexCount];
+        // Set the rest of the vertices to be randomly generated within the islandBounds with an 80% margin if SubIslandCount is 0, else within a 65% margin.
         if (IslandInfo.SubIslandCount == 0)
         {
-            for (int i = 1; i < unsortedMainIslandVertexCount - 1; i++)
+            for (int i = 0; i < mainIslandVertexCount; i++)
             {
                 Vector2 vertex = new Vector2(Random.Range(islandBounds.x * 0.2f, islandBounds.x * 0.8f), Random.Range(islandBounds.y * 0.2f, islandBounds.y * 0.8f));
                 mainIslandVertices[i] = vertex;
@@ -52,50 +43,98 @@ public class IslandGeneration : MonoBehaviour
         }
         else
         {
-            for (int i = 1; i < unsortedMainIslandVertexCount - 1; i++)
+            for (int i = 0; i < mainIslandVertexCount; i++)
             {
                 Vector2 vertex = new Vector2(Random.Range(islandBounds.x * 0.35f, islandBounds.x * 0.65f), Random.Range(islandBounds.y * 0.35f, islandBounds.y * 0.65f));
                 mainIslandVertices[i] = vertex;
                 mainIslandVertices3D[i] = new Vector3(vertex.x, vertex.y, 0f);
             }
         }
-        // Create a new Triangulator to create the island mesh.
-        Triangulator triangulator = new Triangulator(mainIslandVertices);
-        // Create an int list of indices for the island mesh.
-        int[] mainIslandIndices = triangulator.Triangulate();
 
         // Create a new island mesh.
         Mesh islandMesh = new Mesh();
-        // Set the vertices of the island mesh.
         islandMesh.vertices = mainIslandVertices3D;
-        // Set the triangles of the island mesh.
-        islandMesh.triangles = mainIslandIndices;
-        // Set the normals of the island mesh.
-        islandMesh.RecalculateNormals();
-        // Set the bounds of the island mesh.
         islandMesh.RecalculateBounds();
+
+        // Sort the mainIslandPoints clockwise.
+        Vector2 islandCenterPoint = new Vector2(islandMesh.bounds.center.x, islandMesh.bounds.center.y);
+        System.Array.Sort(mainIslandVertices, new ClockwiseComparer(islandCenterPoint));
+
+        // Debug draw a sphere at each main island vertex.
+        for (int i = 0; i < mainIslandVertices.Length; i++)
+        {
+            GameObject dcircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            dcircle.GetComponent<Transform>().position = mainIslandVertices[i];
+        }
 
         // List of halfway points between the main island vertices.
         Vector2[] halfwayPoints = new Vector2[mainIslandVertices.Length];
 
         // Get the halfway points between the main island vertices, put them in the halfwayPoints list.
-        for (int i = 0; i < edgeVertices.Count; i++)
+        for (int i = 0; i < mainIslandVertices.Length; i++)
         {
-            if (i < edgeVertices.Count - 1)
+            if (i < mainIslandVertices.Length - 2)
             {
-                float distanceBetweenVecs = Vector2.Distance(edgeVertices[i], edgeVertices[i + 1]);
-                Vector2 halfwayPoint = Vector2.Lerp(edgeVertices[i], edgeVertices[i + 1], (distanceBetweenVecs / 2) / (edgeVertices[i] - edgeVertices[i + 1]).magnitude);
+                float distanceBetweenVecs = Vector2.Distance(mainIslandVertices[i], mainIslandVertices[i + 1]);
+                Vector2 halfwayPoint = Vector2.Lerp(mainIslandVertices[i], mainIslandVertices[i + 1], (distanceBetweenVecs / 2) / (mainIslandVertices[i] - mainIslandVertices[i + 1]).magnitude);
                 halfwayPoints[i] = halfwayPoint;
             }
             else
             {
-                float distanceBetweenVecs = Vector2.Distance(edgeVertices[i], edgeVertices[0]);
-                Vector2 halfwayPoint = Vector2.Lerp(edgeVertices[i], edgeVertices[0], (distanceBetweenVecs / 2) / (edgeVertices[i] - edgeVertices[0]).magnitude);
+                float distanceBetweenVecs = Vector2.Distance(mainIslandVertices[i], mainIslandVertices[0]);
+                Vector2 halfwayPoint = Vector2.Lerp(mainIslandVertices[i], mainIslandVertices[0], (distanceBetweenVecs / 2) / (mainIslandVertices[i] - mainIslandVertices[0]).magnitude);
                 halfwayPoints[i] = halfwayPoint;
             }
         }
+        // int for the number of points between two main island vertices (makes the curve more smooth).
+        int curvePoints = 8;
+        // List of the curve points between the main island vertices. Using List<Vector2> because we don't know what the size of the list will be and C# be like that...
+        List<Vector2> curvePointsList = new List<Vector2>();
+        for (int i = 0; i < mainIslandVertices.Length - 1; i++)
+        {
+            if (i < mainIslandVertices.Length - 2)
+            {
+                for (int x = 0; x < curvePoints; x++)
+                {
+                    float t = x / (float)curvePoints;
+                    Vector2 position = islandTools.CalculateQuadraticBezierPoint(t, halfwayPoints[i], mainIslandVertices[i + 1], halfwayPoints[i + 1]);
+                    curvePointsList.Add(position);
+                }
+            }
+            else
+            {
+                for (int x = 0; x < curvePoints; x++)
+                {
+                    float t = x / (float)curvePoints;
+                    Vector2 position = islandTools.CalculateQuadraticBezierPoint(t, halfwayPoints[i], mainIslandVertices[0], halfwayPoints[0]);
+                    curvePointsList.Add(position);
+                }
+            }
+        }
+        curvePointsList.Add(curvePointsList[0]);
+        // Convert the curve points list to an array.
+        Vector2[] curvePointsArray = curvePointsList.ToArray();
+        Vector2[] mainIslandPointsSorted = curvePointsArray;
+        // Put the sorted main island points into a new Vector3 list.
+        Vector3[] mainIslandPointsSorted3D = new Vector3[mainIslandPointsSorted.Length];
+        for (int i = 0; i < mainIslandPointsSorted.Length; i++)
+        {
+            mainIslandPointsSorted3D[i] = new Vector3(mainIslandPointsSorted[i].x, mainIslandPointsSorted[i].y, 0f);
+        }
+        // Triangulate the new curve points.
+        Triangulator triangulator = new Triangulator(mainIslandPointsSorted);
+        int[] mainIslandIndices = triangulator.Triangulate();
 
-
+        // Set the island mesh vertices to the mainIslandPoints list.
+        islandMesh.vertices = mainIslandPointsSorted3D;
+        // Set the island mesh triangles to the mainIslandIndices list.
+        islandMesh.triangles = mainIslandIndices;
+        // Set the island mesh UVs.
+        islandMesh.SetUVs(0, mainIslandPointsSorted3D);
+        // Set the island mesh normals.
+        islandMesh.RecalculateNormals();
+        // Set the island mesh bounds.
+        islandMesh.RecalculateBounds();
         // Return the island mesh.
         return islandMesh;
     }
