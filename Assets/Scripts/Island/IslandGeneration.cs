@@ -15,9 +15,17 @@ public class IslandGeneration : MonoBehaviour
         IslandInfo = GameObject.Find("Island").GetComponent<IslandInfo>();
         // Get the mainIsland game object.
         mainIsland = GameObject.Find("Main Island");
+        // Get the sub islands game object.
+        GameObject subIslands = GameObject.Find("Sub Islands");
         // Set the main island's mesh to be the generated island mesh shape.
         mainIsland.GetComponent<MeshFilter>().mesh = GenerateMainIslandShape(IslandInfo.IslandSize);
         mainIsland.GetComponent<MeshRenderer>().material = Resources.Load("Materials/Grass") as Material;
+        if (IslandInfo.SubIslandCount > 0)
+        {
+            // Generate the sub islands.
+            Mesh[] subIslandMeshes = GenerateSubIslandShapes(IslandInfo.SubIslandCount);
+            AddSubIslandToParentGameObject(subIslandMeshes, subIslands);
+        }
     }
 
     // Generates the shape of the main island based on the IslandSize var from the IslandInfo script.
@@ -132,8 +140,8 @@ public class IslandGeneration : MonoBehaviour
         return islandMesh;
     }
 
-    // Generates the shaps and locations of the sub islands.
-    Mesh[] GenerateSubIslandShapes(int NumberOfIslands, Mesh MainIsland)
+    // Generates the shapes of the sub islands.
+    Mesh[] GenerateSubIslandShapes(int NumberOfIslands)
     {
         // List of the sub island meshes.
         Mesh[] subIslandMeshes = new Mesh[NumberOfIslands];
@@ -143,14 +151,113 @@ public class IslandGeneration : MonoBehaviour
             // Create a new sub island mesh.
             Mesh subIslandMesh = new Mesh();
             // Randomly generate the number of vertices for the sub island.
-            int subIslandVertexCount = Random.Range(3, 7);
+            int subIslandVertexCount = Random.Range(4, 7);
             // Randomly generate the size (bounds) of the sub island based on the main island size.
             Vector2 subIslandBounds = new Vector2(IslandInfo.IslandSize * Random.Range(0.1f, 0.3f), IslandInfo.IslandSize * Random.Range(0.1f, 0.3f));
             // Vector2 list of the sub island vertices.
             Vector2[] subIslandVertices = new Vector2[subIslandVertexCount];
             // Vector3 list of the sub island vertices.
             Vector3[] subIslandVertices3D = new Vector3[subIslandVertexCount];
+            // For each vertex, generate a random position within the sub island bounds.
+            for (int x = 0; x < subIslandVertexCount; x++)
+            {
+                Vector2 vertex = new Vector2(Random.Range(subIslandBounds.x * 0.1f, subIslandBounds.x * 0.3f), Random.Range(subIslandBounds.y * 0.1f, subIslandBounds.y * 0.3f));
+                subIslandVertices[x] = vertex;
+                subIslandVertices3D[x] = new Vector3(vertex.x, vertex.y, 0f);
+            }
+            // Set the sub island mesh vertices to the sub island vertices list.
+            subIslandMesh.vertices = subIslandVertices3D;
+            // Recalculate the sub island mesh bounds.
+            subIslandMesh.RecalculateBounds();
+            // Sort the sub island vertices clockwise.
+            Vector2 islandCenterPoint = new Vector2(subIslandMesh.bounds.center.x, subIslandMesh.bounds.center.y);
+            System.Array.Sort(subIslandVertices, new ClockwiseComparer(islandCenterPoint));
+            // List of halway points between the sub island vertices.
+            Vector2[] halfwayPoints = new Vector2[subIslandVertices.Length];
+            // For each vertex, calculate the halfway point between the vertex and the next vertex.
+            for (int h = 0; h < subIslandVertices.Length; h++)
+            {
+                if (h < subIslandVertices.Length - 2)
+                {
+                    float distanceBetweenVecs = Vector2.Distance(subIslandVertices[h], subIslandVertices[h + 1]);
+                    Vector2 halfwayPoint = Vector2.Lerp(subIslandVertices[h], subIslandVertices[h + 1], (distanceBetweenVecs / 2) / (subIslandVertices[h] - subIslandVertices[h + 1]).magnitude);
+                    halfwayPoints[h] = halfwayPoint;
+                }
+                else
+                {
+                    float distanceBetweenVecs = Vector2.Distance(subIslandVertices[h], subIslandVertices[0]);
+                    Vector2 halfwayPoint = Vector2.Lerp(subIslandVertices[h], subIslandVertices[0], (distanceBetweenVecs / 2) / (subIslandVertices[h] - subIslandVertices[0]).magnitude);
+                    halfwayPoints[h] = halfwayPoint;
+                }
+            }
+            // int for the number of curve points between two vertices (more curve points = smoother curves).
+            int curvePoints = 8;
+            // List of the curve points.
+            List<Vector2> curvePointsList = new List<Vector2>();
+            // For each vertex, generate the curve points between the vertex and the halfway point.
+            for (int v = 0; v < subIslandVertices.Length - 1; v++)
+            {
+                if (v < subIslandVertices.Length - 2)
+                {
+                    for (int x = 0; x < curvePoints; x++)
+                    {
+                        float t = x / (float)curvePoints;
+                        Vector2 position = islandTools.CalculateQuadraticBezierPoint(t, halfwayPoints[v], subIslandVertices[v + 1], halfwayPoints[v + 1]);
+                        curvePointsList.Add(position);
+                    }
+                }
+                else
+                {
+                    for (int x = 0; x < curvePoints; x++)
+                    {
+                        float t = x / (float)curvePoints;
+                        Vector2 position = islandTools.CalculateQuadraticBezierPoint(t, halfwayPoints[v], subIslandVertices[0], halfwayPoints[0]);
+                        curvePointsList.Add(position);
+                    }
+                }
+            }
+            curvePointsList.Add(curvePointsList[0]);
+            // Convert the curve points list to an array.
+            Vector2[] curvePointsArray = curvePointsList.ToArray();
+            // Put the curve points array into a Vector3 array.
+            Vector3[] curvePointsArray3D = new Vector3[curvePointsArray.Length];
+            for (int x = 0; x < curvePointsArray.Length; x++)
+            {
+                curvePointsArray3D[x] = new Vector3(curvePointsArray[x].x, curvePointsArray[x].y, 0f);
+            }
+            // Triangulate the curve points array.
+            Triangulator triangulator = new Triangulator(curvePointsArray);
+            int[] subIslandIndices = triangulator.Triangulate();
+            // Set the sub island mesh vertices.
+            subIslandMesh.vertices = curvePointsArray3D;
+            // Set the sub island mesh triangles.
+            subIslandMesh.triangles = subIslandIndices;
+            // Set the sub island UVs.
+            subIslandMesh.uv = curvePointsArray;
+            // Set the sub island mesh normals.
+            subIslandMesh.RecalculateNormals();
+            // Set the sub island mesh bounds.
+            subIslandMesh.RecalculateBounds();
+
+            // Add the sub island mesh to the sub island meshes list.
+            subIslandMeshes[i] = subIslandMesh;
         }
+        // Return the list of sub island meshes.
         return subIslandMeshes;
+    }
+
+    // Add sub island meshes to the sub island parent game object.
+    void AddSubIslandToParentGameObject(Mesh[] subIslandMeshes, GameObject subIslandParentObject)
+    {
+        // For each sub island mesh, create a new game object and add the sub island mesh to it.
+        for (int i = 0; i < subIslandMeshes.Length; i++)
+        {
+            GameObject subIslandGameObject = new GameObject("Sub Island " + i);
+            subIslandGameObject.transform.parent = subIslandParentObject.transform;
+            subIslandGameObject.AddComponent<MeshFilter>();
+            subIslandGameObject.AddComponent<MeshRenderer>();
+            subIslandGameObject.GetComponent<MeshFilter>().mesh = subIslandMeshes[i];
+            subIslandGameObject.GetComponent<MeshRenderer>().material = Resources.Load("Materials/Grass") as Material;
+        }
     }
 }
