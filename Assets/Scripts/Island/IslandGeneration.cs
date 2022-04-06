@@ -60,13 +60,6 @@ public class IslandGeneration : MonoBehaviour
         Vector2 islandCenterPoint = new Vector2(islandMesh.bounds.center.x, islandMesh.bounds.center.y);
         System.Array.Sort(mainIslandVertices, new ClockwiseComparer(islandCenterPoint));
 
-        // Debug draw a sphere at each main island vertex.
-        for (int i = 0; i < mainIslandVertices.Length; i++)
-        {
-            GameObject dcircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            dcircle.GetComponent<Transform>().position = mainIslandVertices[i];
-        }
-
         // List of halfway points between the main island vertices.
         Vector2[] halfwayPoints = new Vector2[mainIslandVertices.Length];
 
@@ -139,4 +132,25 @@ public class IslandGeneration : MonoBehaviour
         return islandMesh;
     }
 
+    // Generates the shaps and locations of the sub islands.
+    Mesh[] GenerateSubIslandShapes(int NumberOfIslands, Mesh MainIsland)
+    {
+        // List of the sub island meshes.
+        Mesh[] subIslandMeshes = new Mesh[NumberOfIslands];
+        // For each sub island, do all the same things as the main island.
+        for (int i = 0; i < NumberOfIslands; i++)
+        {
+            // Create a new sub island mesh.
+            Mesh subIslandMesh = new Mesh();
+            // Randomly generate the number of vertices for the sub island.
+            int subIslandVertexCount = Random.Range(3, 7);
+            // Randomly generate the size (bounds) of the sub island based on the main island size.
+            Vector2 subIslandBounds = new Vector2(IslandInfo.IslandSize * Random.Range(0.1f, 0.3f), IslandInfo.IslandSize * Random.Range(0.1f, 0.3f));
+            // Vector2 list of the sub island vertices.
+            Vector2[] subIslandVertices = new Vector2[subIslandVertexCount];
+            // Vector3 list of the sub island vertices.
+            Vector3[] subIslandVertices3D = new Vector3[subIslandVertexCount];
+        }
+        return subIslandMeshes;
+    }
 }

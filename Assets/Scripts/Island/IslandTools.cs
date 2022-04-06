@@ -15,12 +15,8 @@ public class IslandTools
         p += tt * p2;
         return p;
     }
-    // A function to order a list of vertices clockwise.
-    public Vector3[] OrderVertices(Vector3[] vertices)
-    {
-        return vertices;
-    }
 }
+// A function to order a list of vertices clockwise.
 public class ClockwiseComparer : IComparer<Vector2>
 {
     private Vector2 m_Origin;
