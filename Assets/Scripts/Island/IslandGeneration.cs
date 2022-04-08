@@ -5,18 +5,19 @@ using UnityEngine;
 public class IslandGeneration : MonoBehaviour
 {
     IslandInfo IslandInfo;
-    GameObject mainIsland;
+    public GameObject mainIsland;
+    public GameObject subIslands;
     // Create the islandTools object.
     IslandTools islandTools = new IslandTools();
+    // List of islands.
+    List<GameObject> islands = new List<GameObject>();
 
     void Start()
     {
         // Get variables from the IslandInfo script.
         IslandInfo = GameObject.Find("Island").GetComponent<IslandInfo>();
-        // Get the mainIsland game object.
-        mainIsland = GameObject.Find("Main Island");
-        // Get the sub islands game object.
-        GameObject subIslands = GameObject.Find("Sub Islands");
+        // Add mainIsland gameobject to the list of islands.
+        islands.Add(mainIsland);
         // Set the main island's mesh to be the generated island mesh shape.
         mainIsland.GetComponent<MeshFilter>().mesh = GenerateMainIslandShape(IslandInfo.IslandSize);
         mainIsland.GetComponent<MeshRenderer>().material = Resources.Load("Materials/Grass") as Material;
@@ -26,6 +27,7 @@ public class IslandGeneration : MonoBehaviour
             Mesh[] subIslandMeshes = GenerateSubIslandShapes(IslandInfo.SubIslandCount);
             AddSubIslandToParentGameObject(subIslandMeshes, subIslands);
         }
+        PositionIslands(islands);
     }
 
     // Generates the shape of the main island based on the IslandSize var from the IslandInfo script.
@@ -34,7 +36,7 @@ public class IslandGeneration : MonoBehaviour
         // Set the bounds of the island in 2D space.
         Vector2 islandBounds = new Vector2(IslandSize, IslandSize);
         // Randomly generate the number of vertex points the island will have.
-        int mainIslandVertexCount = Random.Range(5, 15);
+        int mainIslandVertexCount = Random.Range(10, 15);
         // List of island vertices.
         Vector2[] mainIslandVertices = new Vector2[mainIslandVertexCount];
         // 3D Vector list of the island vertices.
@@ -151,9 +153,9 @@ public class IslandGeneration : MonoBehaviour
             // Create a new sub island mesh.
             Mesh subIslandMesh = new Mesh();
             // Randomly generate the number of vertices for the sub island.
-            int subIslandVertexCount = Random.Range(4, 7);
+            int subIslandVertexCount = Random.Range(5, 10);
             // Randomly generate the size (bounds) of the sub island based on the main island size.
-            Vector2 subIslandBounds = new Vector2(IslandInfo.IslandSize * Random.Range(0.1f, 0.3f), IslandInfo.IslandSize * Random.Range(0.1f, 0.3f));
+            Vector2 subIslandBounds = new Vector2(IslandInfo.IslandSize * Random.Range(0.1f, 0.25f), IslandInfo.IslandSize * Random.Range(0.1f, 0.25f));
             // Vector2 list of the sub island vertices.
             Vector2[] subIslandVertices = new Vector2[subIslandVertexCount];
             // Vector3 list of the sub island vertices.
@@ -161,7 +163,7 @@ public class IslandGeneration : MonoBehaviour
             // For each vertex, generate a random position within the sub island bounds.
             for (int x = 0; x < subIslandVertexCount; x++)
             {
-                Vector2 vertex = new Vector2(Random.Range(subIslandBounds.x * 0.1f, subIslandBounds.x * 0.3f), Random.Range(subIslandBounds.y * 0.1f, subIslandBounds.y * 0.3f));
+                Vector2 vertex = new Vector2(Random.Range(0, subIslandBounds.x), Random.Range(0, subIslandBounds.y));
                 subIslandVertices[x] = vertex;
                 subIslandVertices3D[x] = new Vector3(vertex.x, vertex.y, 0f);
             }
@@ -239,9 +241,18 @@ public class IslandGeneration : MonoBehaviour
             // Set the sub island mesh bounds.
             subIslandMesh.RecalculateBounds();
 
-            // Add the sub island mesh to the sub island meshes list.
-            subIslandMeshes[i] = subIslandMesh;
+            // Add the sub island mesh to the sub island meshes list if the sub island surface area is greater than 1000.
+            if (islandTools.CalculateArea(subIslandMesh.vertices) > 1000)
+            {
+                subIslandMeshes[i] = subIslandMesh;
+            }
+            else
+            {
+                IslandInfo.SubIslandCount -= 1;
+                Debug.Log("Sub Island removed for being too small.");
+            }
         }
+        
         // Return the list of sub island meshes.
         return subIslandMeshes;
     }
@@ -253,11 +264,49 @@ public class IslandGeneration : MonoBehaviour
         for (int i = 0; i < subIslandMeshes.Length; i++)
         {
             GameObject subIslandGameObject = new GameObject("Sub Island " + i);
+            // Add the sub island GameObject to islands GameObject list.
+            islands.Add(subIslandGameObject);
             subIslandGameObject.transform.parent = subIslandParentObject.transform;
             subIslandGameObject.AddComponent<MeshFilter>();
             subIslandGameObject.AddComponent<MeshRenderer>();
             subIslandGameObject.GetComponent<MeshFilter>().mesh = subIslandMeshes[i];
             subIslandGameObject.GetComponent<MeshRenderer>().material = Resources.Load("Materials/Grass") as Material;
+        }
+    }
+
+    // Repositions the island meshes so that they're close to each other but not overlapping or touching. Also adds the edge collider to the island meshes.
+    void PositionIslands(List<GameObject> islandGameObjects)
+    {
+        // Start by putting all the islands at the same position.
+        for (int i = 0; i < islandGameObjects.Count; i++)
+        {
+            islandGameObjects[i].transform.position = islandGameObjects[0].GetComponent<MeshFilter>().mesh.vertices[0];
+        }
+        // Add edge colliders to the islands.
+        for (int i = 0; i < islandGameObjects.Count; i++)
+        {
+            islandGameObjects[i].AddComponent<EdgeCollider2D>();
+            Vector2[] edgePoints = new Vector2[islandGameObjects[i].GetComponent<MeshFilter>().mesh.vertices.Length];
+            // Convert the island mesh vertices to Vector2s.
+            for (int x = 0; x < islandGameObjects[i].GetComponent<MeshFilter>().mesh.vertices.Length; x++)
+            {
+                edgePoints[x] = new Vector2(islandGameObjects[i].GetComponent<MeshFilter>().mesh.vertices[x].x, islandGameObjects[i].GetComponent<MeshFilter>().mesh.vertices[x].y);
+            }
+            islandGameObjects[i].GetComponent<EdgeCollider2D>().points = edgePoints;
+        }
+        // If the island count is greater than 1, reposition the islands.
+        if (islandGameObjects.Count > 1)
+        {
+            // Choose a random direction to reposition the islands towards.
+            Vector3 direction = new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), 0f);
+            // Get the main island bounds center.
+            Vector3 mainIslandBoundsCenter = islandGameObjects[0].GetComponent<MeshFilter>().mesh.bounds.center;
+            // For each island in the list, check if it overlaps using the edge collider.
+            for (int i = 1; i < islandGameObjects.Count; i++)
+            {
+                // Move all the sub islands to the mainIslandBoundsCenter position.
+                islandGameObjects[i].transform.position = mainIslandBoundsCenter;
+            }
         }
     }
 }

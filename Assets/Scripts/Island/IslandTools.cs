@@ -15,6 +15,14 @@ public class IslandTools
         p += tt * p2;
         return p;
     }
+    public float CalculateArea(Vector3[] meshVertices)
+    {
+        var result = 0f;
+        for (int p = meshVertices.Length - 1, q = 0; q < meshVertices.Length; p = q++)
+            result += (Vector3.Cross(meshVertices[q], meshVertices[p])).magnitude;
+
+        return result * .5f;
+    }
 }
 // A function to order a list of vertices clockwise.
 public class ClockwiseComparer : IComparer<Vector2>
