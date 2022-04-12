@@ -28,6 +28,7 @@ public class IslandGeneration : MonoBehaviour
             AddSubIslandToParentGameObject(subIslandMeshes, subIslands);
         }
         PositionIslands(islands);
+        
     }
 
     // Generates the shape of the main island based on the IslandSize var from the IslandInfo script.
@@ -124,6 +125,8 @@ public class IslandGeneration : MonoBehaviour
         {
             mainIslandPointsSorted3D[i] = new Vector3(mainIslandPointsSorted[i].x, mainIslandPointsSorted[i].y, 0f);
         }
+        // Might fix the issue of the island not being closed. https://github.com/westernesque/wind-fishers/issues/1
+        islandMesh.RecalculateNormals();
         // Triangulate the new curve points.
         Triangulator triangulator = new Triangulator(mainIslandPointsSorted);
         int[] mainIslandIndices = triangulator.Triangulate();
@@ -277,15 +280,16 @@ public class IslandGeneration : MonoBehaviour
     // Repositions the island meshes so that they're close to each other but not overlapping or touching. Also adds the edge collider to the island meshes.
     void PositionIslands(List<GameObject> islandGameObjects)
     {
-        // Start by putting all the islands at the same position.
-        for (int i = 0; i < islandGameObjects.Count; i++)
-        {
-            islandGameObjects[i].transform.position = islandGameObjects[0].GetComponent<MeshFilter>().mesh.vertices[0];
-        }
-        // Add edge colliders to the islands.
+        // Start by putting all the sub islands at the same position as the main island.
+        subIslands.transform.position = mainIsland.GetComponent<MeshFilter>().mesh.bounds.center;
+        // Add edge colliders to the islands and repositioner script to island GameObjects.
         for (int i = 0; i < islandGameObjects.Count; i++)
         {
             islandGameObjects[i].AddComponent<EdgeCollider2D>();
+            islandGameObjects[i].AddComponent<Rigidbody2D>();
+            // Freeze the island GameObjects rigidbody.
+            islandGameObjects[i].GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeAll;
+            //islandGameObjects[i].AddComponent<Repositioner>();
             Vector2[] edgePoints = new Vector2[islandGameObjects[i].GetComponent<MeshFilter>().mesh.vertices.Length];
             // Convert the island mesh vertices to Vector2s.
             for (int x = 0; x < islandGameObjects[i].GetComponent<MeshFilter>().mesh.vertices.Length; x++)
@@ -294,18 +298,22 @@ public class IslandGeneration : MonoBehaviour
             }
             islandGameObjects[i].GetComponent<EdgeCollider2D>().points = edgePoints;
         }
-        // If the island count is greater than 1, reposition the islands.
-        if (islandGameObjects.Count > 1)
+    }
+    private void Update()
+    {
+        // If the island game object bounds interesects another island game object bounds, move the island game object.
+        for (int i = 0; i < islands.Count; i++)
         {
-            // Choose a random direction to reposition the islands towards.
-            Vector3 direction = new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), 0f);
-            // Get the main island bounds center.
-            Vector3 mainIslandBoundsCenter = islandGameObjects[0].GetComponent<MeshFilter>().mesh.bounds.center;
-            // For each island in the list, check if it overlaps using the edge collider.
-            for (int i = 1; i < islandGameObjects.Count; i++)
+            for (int x = 0; x < islands.Count; x++)
             {
-                // Move all the sub islands to the mainIslandBoundsCenter position.
-                islandGameObjects[i].transform.position = mainIslandBoundsCenter;
+                if (i != x)
+                {
+                    if (islands[i].GetComponent<EdgeCollider2D>().bounds.Intersects(islands[x].GetComponent<EdgeCollider2D>().bounds))
+                    {
+                        islands[i].transform.position = new Vector3(islands[i].transform.position.x + Random.Range(-10f, 10f), islands[i].transform.position.y + Random.Range(-10f, 10f), 0f);
+                        Debug.Log("Island " + i + " moved.");
+                    }
+                }
             }
         }
     }
