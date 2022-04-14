@@ -286,10 +286,6 @@ public class IslandGeneration : MonoBehaviour
         for (int i = 0; i < islandGameObjects.Count; i++)
         {
             islandGameObjects[i].AddComponent<EdgeCollider2D>();
-            islandGameObjects[i].AddComponent<Rigidbody2D>();
-            // Freeze the island GameObjects rigidbody.
-            islandGameObjects[i].GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezeAll;
-            //islandGameObjects[i].AddComponent<Repositioner>();
             Vector2[] edgePoints = new Vector2[islandGameObjects[i].GetComponent<MeshFilter>().mesh.vertices.Length];
             // Convert the island mesh vertices to Vector2s.
             for (int x = 0; x < islandGameObjects[i].GetComponent<MeshFilter>().mesh.vertices.Length; x++)
