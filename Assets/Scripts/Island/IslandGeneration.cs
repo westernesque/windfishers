@@ -34,6 +34,7 @@ public class IslandGeneration : MonoBehaviour
     // Generates the shape of the main island based on the IslandSize var from the IslandInfo script.
     Mesh GenerateMainIslandShape(int IslandSize)
     {
+        
         // Set the bounds of the island in 2D space.
         Vector2 islandBounds = new Vector2(IslandSize, IslandSize);
         // Randomly generate the number of vertex points the island will have.
@@ -50,6 +51,7 @@ public class IslandGeneration : MonoBehaviour
                 Vector2 vertex = new Vector2(Random.Range(islandBounds.x * 0.2f, islandBounds.x * 0.8f), Random.Range(islandBounds.y * 0.2f, islandBounds.y * 0.8f));
                 mainIslandVertices[i] = vertex;
                 mainIslandVertices3D[i] = new Vector3(vertex.x, vertex.y, 0f);
+                //geometry.AddPoint(vertex.x, vertex.y);
             }
         }
         else
@@ -59,8 +61,10 @@ public class IslandGeneration : MonoBehaviour
                 Vector2 vertex = new Vector2(Random.Range(islandBounds.x * 0.35f, islandBounds.x * 0.65f), Random.Range(islandBounds.y * 0.35f, islandBounds.y * 0.65f));
                 mainIslandVertices[i] = vertex;
                 mainIslandVertices3D[i] = new Vector3(vertex.x, vertex.y, 0f);
+                //geometry.AddPoint(vertex.x, vertex.y);
             }
         }
+        
 
         // Create a new island mesh.
         Mesh islandMesh = new Mesh();
@@ -116,17 +120,19 @@ public class IslandGeneration : MonoBehaviour
             }
         }
         curvePointsList.Add(curvePointsList[0]);
+
         // Convert the curve points list to an array.
         Vector2[] curvePointsArray = curvePointsList.ToArray();
         Vector2[] mainIslandPointsSorted = curvePointsArray;
         // Put the sorted main island points into a new Vector3 list.
         Vector3[] mainIslandPointsSorted3D = new Vector3[mainIslandPointsSorted.Length];
+        List<Vector3> mainIslandPointsSorted3DList = new List<Vector3>();
         for (int i = 0; i < mainIslandPointsSorted.Length; i++)
         {
             mainIslandPointsSorted3D[i] = new Vector3(mainIslandPointsSorted[i].x, mainIslandPointsSorted[i].y, 0f);
+            mainIslandPointsSorted3DList.Add(new Vector3(mainIslandPointsSorted[i].x, mainIslandPointsSorted[i].y, 0f));
         }
-        // Might fix the issue of the island not being closed. https://github.com/westernesque/wind-fishers/issues/1
-        islandMesh.RecalculateNormals();
+
         // Triangulate the new curve points.
         Triangulator triangulator = new Triangulator(mainIslandPointsSorted);
         int[] mainIslandIndices = triangulator.Triangulate();
@@ -277,7 +283,7 @@ public class IslandGeneration : MonoBehaviour
         }
     }
 
-    // Repositions the island meshes so that they're close to each other but not overlapping or touching. Also adds the edge collider to the island meshes.
+    // Initial positioning of the island meshes so that they're close to each other but not overlapping or touching. Also adds the edge collider to the island meshes.
     void PositionIslands(List<GameObject> islandGameObjects)
     {
         // Start by putting all the sub islands at the same position as the main island.
@@ -298,6 +304,7 @@ public class IslandGeneration : MonoBehaviour
     private void Update()
     {
         // If the island game object bounds interesects another island game object bounds, move the island game object.
+        // TO-DO: Move this logic to a separate function that gets called in the Update() function.
         for (int i = 0; i < islands.Count; i++)
         {
             for (int x = 0; x < islands.Count; x++)
@@ -307,7 +314,6 @@ public class IslandGeneration : MonoBehaviour
                     if (islands[i].GetComponent<EdgeCollider2D>().bounds.Intersects(islands[x].GetComponent<EdgeCollider2D>().bounds))
                     {
                         islands[i].transform.position = new Vector3(islands[i].transform.position.x + Random.Range(-10f, 10f), islands[i].transform.position.y + Random.Range(-10f, 10f), 0f);
-                        Debug.Log("Island " + i + " moved.");
                     }
                 }
             }
