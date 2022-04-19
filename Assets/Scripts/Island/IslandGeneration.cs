@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class IslandGeneration : MonoBehaviour
 {
@@ -40,9 +41,9 @@ public class IslandGeneration : MonoBehaviour
         // Randomly generate the number of vertex points the island will have.
         int mainIslandVertexCount = Random.Range(10, 15);
         // List of island vertices.
-        Vector2[] mainIslandVertices = new Vector2[mainIslandVertexCount];
+        Vector2[] mainIslandVertices = new Vector2[mainIslandVertexCount + 1];
         // 3D Vector list of the island vertices.
-        Vector3[] mainIslandVertices3D = new Vector3[mainIslandVertexCount];
+        Vector3[] mainIslandVertices3D = new Vector3[mainIslandVertexCount + 1];
         // Set the rest of the vertices to be randomly generated within the islandBounds with an 80% margin if SubIslandCount is 0, else within a 65% margin.
         if (IslandInfo.SubIslandCount == 0)
         {
@@ -51,7 +52,6 @@ public class IslandGeneration : MonoBehaviour
                 Vector2 vertex = new Vector2(Random.Range(islandBounds.x * 0.2f, islandBounds.x * 0.8f), Random.Range(islandBounds.y * 0.2f, islandBounds.y * 0.8f));
                 mainIslandVertices[i] = vertex;
                 mainIslandVertices3D[i] = new Vector3(vertex.x, vertex.y, 0f);
-                //geometry.AddPoint(vertex.x, vertex.y);
             }
         }
         else
@@ -61,10 +61,8 @@ public class IslandGeneration : MonoBehaviour
                 Vector2 vertex = new Vector2(Random.Range(islandBounds.x * 0.35f, islandBounds.x * 0.65f), Random.Range(islandBounds.y * 0.35f, islandBounds.y * 0.65f));
                 mainIslandVertices[i] = vertex;
                 mainIslandVertices3D[i] = new Vector3(vertex.x, vertex.y, 0f);
-                //geometry.AddPoint(vertex.x, vertex.y);
             }
         }
-        
 
         // Create a new island mesh.
         Mesh islandMesh = new Mesh();
@@ -95,7 +93,7 @@ public class IslandGeneration : MonoBehaviour
             }
         }
         // int for the number of points between two main island vertices (makes the curve more smooth).
-        int curvePoints = 8;
+        int curvePoints = 10;
         // List of the curve points between the main island vertices. Using List<Vector2> because we don't know what the size of the list will be and C# be like that...
         List<Vector2> curvePointsList = new List<Vector2>();
         for (int i = 0; i < mainIslandVertices.Length - 1; i++)
@@ -120,6 +118,12 @@ public class IslandGeneration : MonoBehaviour
             }
         }
         curvePointsList.Add(curvePointsList[0]);
+        // Add a debug circle at the first curve point.
+        GameObject debugCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        debugCircle.transform.position = curvePointsList[0];
+        // Add a debug square at the second to last curve point.
+        GameObject debugSquare = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        debugSquare.transform.position = curvePointsList[curvePointsList.Count - 2];
 
         // Convert the curve points list to an array.
         Vector2[] curvePointsArray = curvePointsList.ToArray();
@@ -202,7 +206,7 @@ public class IslandGeneration : MonoBehaviour
                 }
             }
             // int for the number of curve points between two vertices (more curve points = smoother curves).
-            int curvePoints = 8;
+            int curvePoints = 10;
             // List of the curve points.
             List<Vector2> curvePointsList = new List<Vector2>();
             // For each vertex, generate the curve points between the vertex and the halfway point.
@@ -236,6 +240,7 @@ public class IslandGeneration : MonoBehaviour
             {
                 curvePointsArray3D[x] = new Vector3(curvePointsArray[x].x, curvePointsArray[x].y, 0f);
             }
+
             // Triangulate the curve points array.
             Triangulator triangulator = new Triangulator(curvePointsArray);
             int[] subIslandIndices = triangulator.Triangulate();
@@ -244,7 +249,7 @@ public class IslandGeneration : MonoBehaviour
             // Set the sub island mesh triangles.
             subIslandMesh.triangles = subIslandIndices;
             // Set the sub island UVs.
-            subIslandMesh.uv = curvePointsArray;
+            subIslandMesh.SetUVs(0, curvePointsArray3D);
             // Set the sub island mesh normals.
             subIslandMesh.RecalculateNormals();
             // Set the sub island mesh bounds.
@@ -257,7 +262,7 @@ public class IslandGeneration : MonoBehaviour
             }
             else
             {
-                IslandInfo.SubIslandCount -= 1;
+                // IslandInfo.SubIslandCount -= 1;
                 Debug.Log("Sub Island removed for being too small.");
             }
         }
@@ -307,16 +312,32 @@ public class IslandGeneration : MonoBehaviour
         // TO-DO: Move this logic to a separate function that gets called in the Update() function.
         for (int i = 0; i < islands.Count; i++)
         {
+            // Check if the main island mesh is generated and doesn't have a missing triangle... (cheap workaround for triangulator bug).
+            if (mainIsland.GetComponent<MeshFilter>().mesh.triangles.Length / 3 != mainIsland.GetComponent<MeshFilter>().mesh.vertices.Length - 4)
+            {
+                mainIsland.GetComponent<MeshFilter>().mesh = GenerateMainIslandShape(IslandInfo.IslandSize);
+                Debug.Log("Main Island Mesh Regenerated.");
+            }
             for (int x = 0; x < islands.Count; x++)
             {
                 if (i != x)
                 {
+                    // Check if the sub island mesh is generated and doesn't have a missing triangle.
+                    if (islands[i].GetComponent<MeshFilter>().mesh.triangles.Length / 3 != islands[i].GetComponent<MeshFilter>().mesh.vertices.Length - 4)
+                    {
+                        islands[i].GetComponent<MeshFilter>().mesh = GenerateMainIslandShape(IslandInfo.IslandSize);
+                    }
                     if (islands[i].GetComponent<EdgeCollider2D>().bounds.Intersects(islands[x].GetComponent<EdgeCollider2D>().bounds))
                     {
                         islands[i].transform.position = new Vector3(islands[i].transform.position.x + Random.Range(-10f, 10f), islands[i].transform.position.y + Random.Range(-10f, 10f), 0f);
                     }
                 }
             }
+        }
+        // Reload the scene if the user presses the R key.
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
     }
 }

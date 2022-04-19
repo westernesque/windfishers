@@ -23,6 +23,19 @@ public class IslandTools
 
         return result * .5f;
     }
+    
+    public void RotateIsland(Vector3 islandCenterPivot, Vector3[] islandVertices, Vector3 rotation)
+    {
+        // The center point that the island will be rotated around.
+        Vector3 center = new Vector3(islandCenterPivot.x, islandCenterPivot.y, islandCenterPivot.z);
+        Quaternion newRotation = new Quaternion();
+        newRotation.eulerAngles = rotation;//the degrees the vertices are to be rotated, for example (0,90,0) 
+
+        for (int i = 0; i < islandVertices.Length; i++)
+        {//vertices being the array of vertices of your mesh
+            islandVertices[i] = newRotation * (islandVertices[i] - center) + center;
+        }
+    }
 }
 // A function to order a list of vertices clockwise.
 public class ClockwiseComparer : IComparer<Vector2>
