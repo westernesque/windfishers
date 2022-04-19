@@ -316,6 +316,14 @@ public class IslandGeneration : MonoBehaviour
             if (mainIsland.GetComponent<MeshFilter>().mesh.triangles.Length / 3 != mainIsland.GetComponent<MeshFilter>().mesh.vertices.Length - 4)
             {
                 mainIsland.GetComponent<MeshFilter>().mesh = GenerateMainIslandShape(IslandInfo.IslandSize);
+                // Convert the main island mesh vertices to Vector2s.
+                Vector2[] mainIslandVertices = new Vector2[mainIsland.GetComponent<MeshFilter>().mesh.vertices.Length];
+                for (int x = 0; x < mainIsland.GetComponent<MeshFilter>().mesh.vertices.Length; x++)
+                {
+                    mainIslandVertices[x] = new Vector2(mainIsland.GetComponent<MeshFilter>().mesh.vertices[x].x, mainIsland.GetComponent<MeshFilter>().mesh.vertices[x].y);
+                }
+                // Reset the main island mesh edge collider.
+                mainIsland.GetComponent<EdgeCollider2D>().points = mainIslandVertices;
                 Debug.Log("Main Island Mesh Regenerated.");
             }
             for (int x = 0; x < islands.Count; x++)
@@ -326,6 +334,14 @@ public class IslandGeneration : MonoBehaviour
                     if (islands[i].GetComponent<MeshFilter>().mesh.triangles.Length / 3 != islands[i].GetComponent<MeshFilter>().mesh.vertices.Length - 4)
                     {
                         islands[i].GetComponent<MeshFilter>().mesh = GenerateMainIslandShape(IslandInfo.IslandSize);
+                        // Convert the sub island mesh vertices to Vector2s.
+                        Vector2[] subIslandVertices = new Vector2[islands[i].GetComponent<MeshFilter>().mesh.vertices.Length];
+                        for (int s = 0; s < islands[i].GetComponent<MeshFilter>().mesh.vertices.Length; s++)
+                        {
+                            subIslandVertices[s] = new Vector2(islands[i].GetComponent<MeshFilter>().mesh.vertices[s].x, islands[i].GetComponent<MeshFilter>().mesh.vertices[s].y);
+                        }
+                        // Reset the sub island mesh edge collider.
+                        islands[i].GetComponent<EdgeCollider2D>().points = subIslandVertices;
                     }
                     if (islands[i].GetComponent<EdgeCollider2D>().bounds.Intersects(islands[x].GetComponent<EdgeCollider2D>().bounds))
                     {
