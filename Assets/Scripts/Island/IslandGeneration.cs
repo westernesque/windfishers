@@ -35,9 +35,9 @@ public class IslandGeneration : MonoBehaviour
     // Generates the shape of the main island based on the IslandSize var from the IslandInfo script.
     Mesh GenerateMainIslandShape(int IslandSize)
     {
-        
-        // Set the bounds of the island in 2D space.
-        Vector2 islandBounds = new Vector2(IslandSize, IslandSize);
+
+        // Randomly set the bounds of the island.
+        Vector2 islandBounds = new Vector2(IslandInfo.IslandSize * Random.Range(0.3f, 0.8f), IslandInfo.IslandSize * Random.Range(0.3f, 0.8f));
         // Randomly generate the number of vertex points the island will have.
         int mainIslandVertexCount = Random.Range(10, 15);
         // List of island vertices.
@@ -49,7 +49,7 @@ public class IslandGeneration : MonoBehaviour
         {
             for (int i = 0; i < mainIslandVertexCount; i++)
             {
-                Vector2 vertex = new Vector2(Random.Range(islandBounds.x * 0.2f, islandBounds.x * 0.8f), Random.Range(islandBounds.y * 0.2f, islandBounds.y * 0.8f));
+                Vector2 vertex = new Vector2(Random.Range(0, islandBounds.x), Random.Range(0, islandBounds.y));
                 mainIslandVertices[i] = vertex;
                 mainIslandVertices3D[i] = new Vector3(vertex.x, vertex.y, 0f);
             }
@@ -58,7 +58,7 @@ public class IslandGeneration : MonoBehaviour
         {
             for (int i = 0; i < mainIslandVertexCount; i++)
             {
-                Vector2 vertex = new Vector2(Random.Range(islandBounds.x * 0.35f, islandBounds.x * 0.65f), Random.Range(islandBounds.y * 0.35f, islandBounds.y * 0.65f));
+                Vector2 vertex = new Vector2(Random.Range(0, islandBounds.x), Random.Range(0, islandBounds.y));
                 mainIslandVertices[i] = vertex;
                 mainIslandVertices3D[i] = new Vector3(vertex.x, vertex.y, 0f);
             }

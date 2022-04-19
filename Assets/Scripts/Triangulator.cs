@@ -17,10 +17,6 @@ public class Triangulator
         int n = m_points.Count;
         if (n < 3)
             return indices.ToArray();
-        if (n == 2)
-        {
-            return new List<int>() { 0, 1 }.ToArray();
-        }
 
         int[] V = new int[n];
         if (Area() > 0)
