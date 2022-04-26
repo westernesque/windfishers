@@ -7,6 +7,7 @@ TagManager:
   - Building
   - Island Bounds
   - Grass - Wheat
+  - Island
   layers:
   - Default
   - TransparentFX

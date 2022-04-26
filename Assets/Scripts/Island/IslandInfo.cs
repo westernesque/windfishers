@@ -128,7 +128,7 @@ public class IslandInfo : MonoBehaviour
         // Generate if the island has sub-islands and how many.
         void GenerateSubIslands()
         {
-            if (Random.Range(0, 100) < 50)
+            if (Random.Range(0, 100) < 60)
             {
                 SubIslandCount = Random.Range(1, 5);
             }

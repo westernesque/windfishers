@@ -247,7 +247,7 @@ GameObject:
   - component: {fileID: 1172513316}
   m_Layer: 0
   m_Name: Sub Islands
-  m_TagString: Untagged
+  m_TagString: Island
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -277,6 +277,7 @@ GameObject:
   - component: {fileID: 1700138096}
   - component: {fileID: 1700138095}
   - component: {fileID: 1700138097}
+  - component: {fileID: 1700138098}
   m_Layer: 0
   m_Name: Island
   m_TagString: Untagged
@@ -339,6 +340,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mainIsland: {fileID: 1780043932}
   subIslands: {fileID: 1172513315}
+  islandsGenerated: 0
+--- !u!114 &1700138098
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1700138094}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 633ff02e811801a42a93abc4fd032571, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1780043932
 GameObject:
   m_ObjectHideFlags: 0
@@ -352,7 +366,7 @@ GameObject:
   - component: {fileID: 1780043934}
   m_Layer: 0
   m_Name: Main Island
-  m_TagString: Untagged
+  m_TagString: Island
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

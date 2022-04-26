@@ -12,6 +12,8 @@ public class IslandGeneration : MonoBehaviour
     IslandTools islandTools = new IslandTools();
     // List of islands.
     List<GameObject> islands = new List<GameObject>();
+    // Bool to stop island generation.
+    public bool islandsGenerated = false;
 
     void Start()
     {
@@ -29,7 +31,6 @@ public class IslandGeneration : MonoBehaviour
             AddSubIslandToParentGameObject(subIslandMeshes, subIslands);
         }
         PositionIslands(islands);
-        
     }
 
     // Generates the shape of the main island based on the IslandSize var from the IslandInfo script.
@@ -118,13 +119,6 @@ public class IslandGeneration : MonoBehaviour
             }
         }
         curvePointsList.Add(curvePointsList[0]);
-        // Add a debug circle at the first curve point.
-        GameObject debugCircle = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-        debugCircle.transform.position = curvePointsList[0];
-        // Add a debug square at the second to last curve point.
-        GameObject debugSquare = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        debugSquare.transform.position = curvePointsList[curvePointsList.Count - 2];
-
         // Convert the curve points list to an array.
         Vector2[] curvePointsArray = curvePointsList.ToArray();
         Vector2[] mainIslandPointsSorted = curvePointsArray;
@@ -136,6 +130,9 @@ public class IslandGeneration : MonoBehaviour
             mainIslandPointsSorted3D[i] = new Vector3(mainIslandPointsSorted[i].x, mainIslandPointsSorted[i].y, 0f);
             mainIslandPointsSorted3DList.Add(new Vector3(mainIslandPointsSorted[i].x, mainIslandPointsSorted[i].y, 0f));
         }
+        
+        // Rotate the curve points list by a random amount.
+        islandTools.RotateIsland(islandCenterPoint, mainIslandPointsSorted3D, new Vector3(0f, 0f, Random.Range(0, 360)));
 
         // Triangulate the new curve points.
         Triangulator triangulator = new Triangulator(mainIslandPointsSorted);
@@ -309,12 +306,13 @@ public class IslandGeneration : MonoBehaviour
     private void Update()
     {
         // If the island game object bounds interesects another island game object bounds, move the island game object.
-        // TO-DO: Move this logic to a separate function that gets called in the Update() function.
-        for (int i = 0; i < islands.Count; i++)
+        // Check if the main island mesh is generated and doesn't have a missing triangle... (cheap workaround for triangulator bug).
+        if (islandsGenerated == false)
         {
-            // Check if the main island mesh is generated and doesn't have a missing triangle... (cheap workaround for triangulator bug).
+            bool missingTriangle = false;
             if (mainIsland.GetComponent<MeshFilter>().mesh.triangles.Length / 3 != mainIsland.GetComponent<MeshFilter>().mesh.vertices.Length - 4)
             {
+                missingTriangle = true;
                 mainIsland.GetComponent<MeshFilter>().mesh = GenerateMainIslandShape(IslandInfo.IslandSize);
                 // Convert the main island mesh vertices to Vector2s.
                 Vector2[] mainIslandVertices = new Vector2[mainIsland.GetComponent<MeshFilter>().mesh.vertices.Length];
@@ -324,32 +322,42 @@ public class IslandGeneration : MonoBehaviour
                 }
                 // Reset the main island mesh edge collider.
                 mainIsland.GetComponent<EdgeCollider2D>().points = mainIslandVertices;
-                Debug.Log("Main Island Mesh Regenerated.");
             }
-            for (int x = 0; x < islands.Count; x++)
+            bool islandsTouching = false;
+            for (int i = 0; i < islands.Count; i++)
             {
-                if (i != x)
+                for (int x = 0; x < islands.Count; x++)
                 {
-                    // Check if the sub island mesh is generated and doesn't have a missing triangle.
-                    if (islands[i].GetComponent<MeshFilter>().mesh.triangles.Length / 3 != islands[i].GetComponent<MeshFilter>().mesh.vertices.Length - 4)
+                    if (i != x)
                     {
-                        islands[i].GetComponent<MeshFilter>().mesh = GenerateMainIslandShape(IslandInfo.IslandSize);
-                        // Convert the sub island mesh vertices to Vector2s.
-                        Vector2[] subIslandVertices = new Vector2[islands[i].GetComponent<MeshFilter>().mesh.vertices.Length];
-                        for (int s = 0; s < islands[i].GetComponent<MeshFilter>().mesh.vertices.Length; s++)
+                        // Check if the sub island mesh is generated and doesn't have a missing triangle.
+                        if (islands[i].GetComponent<MeshFilter>().mesh.triangles.Length / 3 != islands[i].GetComponent<MeshFilter>().mesh.vertices.Length - 4)
                         {
-                            subIslandVertices[s] = new Vector2(islands[i].GetComponent<MeshFilter>().mesh.vertices[s].x, islands[i].GetComponent<MeshFilter>().mesh.vertices[s].y);
+                            islands[i].GetComponent<MeshFilter>().mesh = GenerateMainIslandShape(IslandInfo.IslandSize);
+                            // Convert the sub island mesh vertices to Vector2s.
+                            Vector2[] subIslandVertices = new Vector2[islands[i].GetComponent<MeshFilter>().mesh.vertices.Length];
+                            for (int s = 0; s < islands[i].GetComponent<MeshFilter>().mesh.vertices.Length; s++)
+                            {
+                                subIslandVertices[s] = new Vector2(islands[i].GetComponent<MeshFilter>().mesh.vertices[s].x, islands[i].GetComponent<MeshFilter>().mesh.vertices[s].y);
+                            }
+                            // Reset the sub island mesh edge collider.
+                            islands[i].GetComponent<EdgeCollider2D>().points = subIslandVertices;
                         }
-                        // Reset the sub island mesh edge collider.
-                        islands[i].GetComponent<EdgeCollider2D>().points = subIslandVertices;
-                    }
-                    if (islands[i].GetComponent<EdgeCollider2D>().bounds.Intersects(islands[x].GetComponent<EdgeCollider2D>().bounds))
-                    {
-                        islands[i].transform.position = new Vector3(islands[i].transform.position.x + Random.Range(-10f, 10f), islands[i].transform.position.y + Random.Range(-10f, 10f), 0f);
+                        if (islands[i].GetComponent<EdgeCollider2D>().bounds.Intersects(islands[x].GetComponent<EdgeCollider2D>().bounds))
+                        {
+                            islandsTouching = true;
+                            islands[i].transform.position = new Vector3(islands[i].transform.position.x + Random.Range(-10f, 10f), islands[i].transform.position.y + Random.Range(-10f, 10f), 0f);
+                        }
                     }
                 }
             }
+            if (missingTriangle == false && islandsTouching == false)
+            {
+                islandsGenerated = true;
+                Debug.Log(IslandInfo.IslandName + " Generated.");
+            }
         }
+        
         // Reload the scene if the user presses the R key.
         if (Input.GetKeyDown(KeyCode.R))
         {
