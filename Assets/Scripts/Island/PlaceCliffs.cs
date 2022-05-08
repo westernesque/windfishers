@@ -65,6 +65,7 @@ public class PlaceCliffs : MonoBehaviour
         Mesh CreatePlateau(Mesh islandMesh)
         {
             // Get a random vertice from the island mesh on one half of the island.
+            // TODO: change this logic so that it gets a point closest to the left edge of the island bounds
             Vector3 randomPoint = islandMesh.vertices[islandMesh.vertices.Length / 4];
             Debug.Log("randomPoint: " + randomPoint);
             // Get the vertex of the random point.
