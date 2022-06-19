@@ -65,45 +65,119 @@ public class PlaceCliffs : MonoBehaviour
         Mesh CreatePlateau(Mesh islandMesh)
         {
             // Get a random vertice from the island mesh on one half of the island.
-            // TODO: change this logic so that it gets a point closest to the left edge of the island bounds
-            Vector3 randomPoint = islandMesh.vertices[islandMesh.vertices.Length / 4];
-            Debug.Log("randomPoint: " + randomPoint);
-            // Get the vertex of the random point.
-            int randomPointIndex = System.Array.IndexOf(islandMesh.vertices, randomPoint);
-            Debug.Log("Random point index: " + randomPointIndex);
-            // List of vertices that will be used to create the plateau.
-            List<Vector3> plateauPoints = new List<Vector3>();
-            // Add the points to the list if they are not higher than the random point y.
-            for (int i = randomPointIndex; i < islandMesh.vertices.Length; i++)
+            // TODO: change this logic so that it gets a point closest to the center point of the left side of the island bounds.
+            Vector3 leftIslandBoundsCenter = new Vector3(0f, islandMesh.bounds.center.y, 0f);
+            // Vector3 point that is the closest to the leftIslandBoundsCenter point.
+            Vector3 leftClosestPoint = new Vector3();
+            // For each point in the island mesh, if the point is on the left side of the island bounds, check if it is closer to the leftIslandBoundsCenter than the closestPoint.
+            foreach (Vector3 point in islandMesh.vertices)
             {
-                if (islandMesh.vertices[i].y > randomPoint.y)
+                if (point.x < leftIslandBoundsCenter.x)
                 {
-                    plateauPoints.Add(islandMesh.vertices[i]);
+                    if (Vector3.Distance(point, leftIslandBoundsCenter) < Vector3.Distance(leftClosestPoint, leftIslandBoundsCenter))
+                    {
+                        leftClosestPoint = point;
+                    }
+                }
+            }
+            // Create a sphere at the leftClosestPoint called leftSphere.
+            GameObject leftSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            leftSphere.transform.position = leftClosestPoint;
+            leftSphere.name = "Left Sphere";
+            // The right center point of the island bounds.
+            Vector3 rightIslandBoundsCenter = new Vector3(islandMesh.bounds.size.x, islandMesh.bounds.center.y, 0f);
+            // Vector3 point that is closest to the rightIslandBoundsCenter point.
+            Vector3 rightClosestPoint = new Vector3();
+            // For each point in the island mesh, if the point is on the right side of the island bounds, check if it is closer to the rightIslandBoundsCenter than the closestPoint.
+            foreach (Vector3 point in islandMesh.vertices)
+            {
+                if (point.x > rightIslandBoundsCenter.x)
+                {
+                    if (Vector3.Distance(point, rightIslandBoundsCenter) < Vector3.Distance(rightClosestPoint, rightIslandBoundsCenter))
+                    {
+                        rightClosestPoint = point;
+                    }
+                }
+            }
+            // Create a sphere at the rightClosestPoint called rightSphere.
+            GameObject rightSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            rightSphere.transform.position = rightClosestPoint;
+            rightSphere.name = "Right Sphere";
+
+            // Get the left closest point index in the island mesh vertices.
+            int leftClosestPointIndex = System.Array.IndexOf(islandMesh.vertices, leftClosestPoint);
+            Debug.Log("leftClosestPointIndex: " + leftClosestPointIndex);
+            // Get the right closest point index in the island mesh vertices.
+            int rightClosestPointIndex = System.Array.IndexOf(islandMesh.vertices, rightClosestPoint);
+            Debug.Log("rightClosestPointIndex: " + rightClosestPointIndex);
+            // List of vertices that will be used to create the plateau.
+            List<Vector3> plateauVertices = new List<Vector3>();
+            // Add the points to the list if they are between the leftClosestPointIndex and rightClosestPointIndex.
+            for (int i = leftClosestPointIndex; i < rightClosestPointIndex; i++)
+            {
+                if (i >= leftClosestPointIndex && i <= rightClosestPointIndex)
+                {
+                    plateauVertices.Add(islandMesh.vertices[i]);
                 }
             }
             // Add the first point to the list.
-            plateauPoints.Add(plateauPoints[0]);
-            // Vector2 lists of vertices that will be used to create the plateau.
-            Vector2[] plateauPoints2D = new Vector2[plateauPoints.Count];
-            // Vector3 lists of vertices that will be used to create the plateau.
-            Vector3[] plateauPoints3D = new Vector3[plateauPoints.Count];
-            // Add the points to the 2D list.
-            for (int i = 0; i < plateauPoints.Count; i++)
+            plateauVertices.Add(islandMesh.vertices[leftClosestPointIndex]);
+            // Vector2 list of vertices that will be used to create the plateau mesh.
+            Vector2[] plateauVertices2D = new Vector2[plateauVertices.Count];
+            // Vector3 list of vertices that will be used to create the plateau mesh.
+            Vector3[] plateauVertices3D = new Vector3[plateauVertices.Count];
+            // For each point in the plateauVertices list, convert it to a Vector2 and add it to the plateauVertices2D list.
+            for (int i = 0; i < plateauVertices.Count; i++)
             {
-                plateauPoints2D[i] = new Vector2(plateauPoints[i].x, plateauPoints[i].y);
-                plateauPoints3D[i] = new Vector3(plateauPoints[i].x, plateauPoints[i].y, 0f);
+                plateauVertices2D[i] = new Vector2(plateauVertices[i].x, plateauVertices[i].y);
+                plateauVertices3D[i] = plateauVertices[i];
             }
             // Create a new mesh for the plateau.
             Mesh plateauMesh = new Mesh();
-            // Triangulate the points.
-            Triangulator p_triangulator = new Triangulator(plateauPoints2D);
-            int[] plateauIndices = p_triangulator.Triangulate();
+            // Triangulae the points.
+            Triangulator p_triangulator = new Triangulator(plateauVertices2D);
+            int[] p_triangles = p_triangulator.Triangulate();
+
+
+
+            //Vector3 randomPoint = islandMesh.vertices[islandMesh.vertices.Length / 4];
+            //Debug.Log("randomPoint: " + randomPoint);
+            //// Get the vertex of the random point.
+            //int randomPointIndex = System.Array.IndexOf(islandMesh.vertices, randomPoint);
+            //Debug.Log("Random point index: " + randomPointIndex);
+            //// List of vertices that will be used to create the plateau.
+            //List<Vector3> plateauPoints = new List<Vector3>();
+            //// Add the points to the list if they are not higher than the random point y.
+            //for (int i = randomPointIndex; i < islandMesh.vertices.Length; i++)
+            //{
+            //    if (islandMesh.vertices[i].y > randomPoint.y)
+            //    {
+            //        plateauPoints.Add(islandMesh.vertices[i]);
+            //    }
+            //}
+            //// Add the first point to the list.
+            //plateauPoints.Add(plateauPoints[0]);
+            //// Vector2 lists of vertices that will be used to create the plateau.
+            //Vector2[] plateauPoints2D = new Vector2[plateauPoints.Count];
+            //// Vector3 lists of vertices that will be used to create the plateau.
+            //Vector3[] plateauPoints3D = new Vector3[plateauPoints.Count];
+            //// Add the points to the 2D list.
+            //for (int i = 0; i < plateauPoints.Count; i++)
+            //{
+            //    plateauPoints2D[i] = new Vector2(plateauPoints[i].x, plateauPoints[i].y);
+            //    plateauPoints3D[i] = new Vector3(plateauPoints[i].x, plateauPoints[i].y, 0f);
+            //}
+            //// Create a new mesh for the plateau.
+            //Mesh plateauMesh = new Mesh();
+            //// Triangulate the points.
+            //Triangulator p_triangulator = new Triangulator(plateauPoints2D);
+            //int[] plateauIndices = p_triangulator.Triangulate();
 
             // Set the vertices and triangles of the new mesh.
-            plateauMesh.vertices = plateauPoints3D;
-            plateauMesh.triangles = plateauIndices;
+            plateauMesh.vertices = plateauVertices3D;
+            plateauMesh.triangles = p_triangles;
             // Set the UVs of the new mesh.
-            plateauMesh.SetUVs(0, plateauPoints3D);
+            plateauMesh.SetUVs(0, plateauVertices3D);
             // Recalculate the normals of the new mesh.
             plateauMesh.RecalculateNormals();
             // Set the mesh bounds.
