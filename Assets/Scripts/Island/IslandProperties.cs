@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class IslandProperties : MonoBehaviour
 {
-    public int IslandSize;
+    public float IslandArea;
+    public bool IsSubIsland = false;
     public bool Rivers;
     public bool Ponds;
     public bool Mountains;
@@ -12,11 +13,4 @@ public class IslandProperties : MonoBehaviour
     public string TreeLevel;
     public string GrassLevel;
     public bool Volcano = false;
-
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

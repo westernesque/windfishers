@@ -11,8 +11,8 @@ public class CameraMovement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        islandBoundsX = GameObject.Find("Island").GetComponent<IslandGenerator>().IslandBounds.x;
-        islandBoundsY = GameObject.Find("Island").GetComponent<IslandGenerator>().IslandBounds.y;
+        islandBoundsX = 1000.0f;
+        islandBoundsY = 1000.0f;
     }
 
     // Update is called once per frame
