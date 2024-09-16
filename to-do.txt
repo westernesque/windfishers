@@ -1,0 +1,10 @@
+windfishers to-do
+------------------------------
+- finish island overlap check
+-- curve the meshes
+
+
+tx-two step to-d0
+------------------------------
+- filter by least/most/sometimes
+- check last results

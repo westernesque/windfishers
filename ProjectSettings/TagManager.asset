@@ -3,7 +3,11 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Building
+  - Island Bounds
+  - Grass - Wheat
+  - Island
   layers:
   - Default
   - TransparentFX
@@ -41,9 +45,9 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Buildings
-    uniqueID: 2580246679
+  - name: Clouds
+    uniqueID: 3024382435
     locked: 0
-  - name: Foliage
-    uniqueID: 4124452083
+  - name: Above Clouds
+    uniqueID: 716075205
     locked: 0
